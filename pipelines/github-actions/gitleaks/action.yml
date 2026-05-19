@@ -1,0 +1,30 @@
+name: "AISec — Gitleaks Secret Scan"
+description: >
+  Wraps the official gitleaks-action with project-specific allowlist rules.
+  Used by secret-scan.yml workflow.
+  Phase 0: stub. Phase 6: project-specific .gitleaks.toml rules added.
+
+inputs:
+  scan-mode:
+    description: "diff (PR mode) or full (history mode)."
+    required: false
+    default: "diff"
+  sarif-output:
+    description: "Path for the SARIF output file."
+    required: false
+    default: "gitleaks-results.sarif"
+
+outputs:
+  sarif-file:
+    description: "Path to the generated SARIF file."
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "PLACEHOLDER — implement in Phase 6"
+      shell: bash
+      run: |
+        echo "Gitleaks composite action wrapper not yet implemented. Phase 6 deliverable."
+        echo "Secret scanning is active via secret-scan.yml using the official gitleaks-action."
+        exit 0

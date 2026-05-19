@@ -1,0 +1,40 @@
+# CODEOWNERS — security-sensitive paths require review by the security owner.
+# All paths are relative to the repo root.
+# Syntax: <pattern> <owner> [<owner> ...]
+#
+# GitHub enforces this on every PR touching these paths when branch protection
+# is enabled with "Require review from Code Owners" (see branch-protection.md).
+
+# ── Global fallback ────────────────────────────────────────────────────────────
+*                                   @kvrp-csc-lgp
+
+# ── Authentication & OIDC (highest sensitivity) ────────────────────────────────
+/aisec/app/auth/                    @kvrp-csc-lgp
+/pursh/backend/auth/                @kvrp-csc-lgp
+
+# ── Compliance & finding mappings ──────────────────────────────────────────────
+/aisec/app/mappings/                @kvrp-csc-lgp
+/docs/compliance/                   @kvrp-csc-lgp
+
+# ── Infrastructure & IaC ──────────────────────────────────────────────────────
+/infra/                             @kvrp-csc-lgp
+/infra/terraform/                   @kvrp-csc-lgp
+
+# ── CI/CD pipelines ────────────────────────────────────────────────────────────
+/.github/workflows/                 @kvrp-csc-lgp
+/pipelines/                         @kvrp-csc-lgp
+
+# ── Incident runbooks & threat models ─────────────────────────────────────────
+/docs/runbooks/                     @kvrp-csc-lgp
+/docs/threat-models/                @kvrp-csc-lgp
+
+# ── Security policy & SCM hardening docs ──────────────────────────────────────
+/.github/SECURITY.md                @kvrp-csc-lgp
+/docs/scm-hardening.md              @kvrp-csc-lgp
+/commit-signing-policy.md           @kvrp-csc-lgp
+/CLAUDE.md                          @kvrp-csc-lgp
+
+# ── Pursh PHI surface (audit log, storage, LLM redaction) ─────────────────────
+/pursh/backend/audit/               @kvrp-csc-lgp
+/pursh/backend/storage/             @kvrp-csc-lgp
+/pursh/backend/llm/                 @kvrp-csc-lgp

@@ -1,0 +1,24 @@
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi>=0.111
+uvicorn[standard]>=0.29
+starlette>=0.37
+
+# ── Settings & validation ─────────────────────────────────────────────────────
+pydantic>=2.7
+pydantic-settings>=2.2
+email-validator>=2.1
+
+# ── JWT / OIDC ────────────────────────────────────────────────────────────────
+python-jose[cryptography]>=3.3
+cryptography>=42
+
+# ── HTTP client (JWKS fetch + tests) ─────────────────────────────────────────
+httpx>=0.27
+
+# ── Structured logging ────────────────────────────────────────────────────────
+structlog>=24.1
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest>=8.2
+pytest-asyncio>=0.23
+anyio>=4.3

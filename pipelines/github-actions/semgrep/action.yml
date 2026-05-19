@@ -1,0 +1,34 @@
+name: "AISec — Semgrep SAST"
+description: >
+  Runs Semgrep against the target repository and outputs a SARIF file.
+  Part of the AISec scanner composite action library.
+  Implemented in Phase 2.
+
+inputs:
+  target-dir:
+    description: "Directory to scan. Defaults to repo root."
+    required: false
+    default: "."
+  severity-threshold:
+    description: "Minimum severity to report: INFO, WARNING, ERROR."
+    required: false
+    default: "WARNING"
+  sarif-output:
+    description: "Path for the SARIF output file."
+    required: false
+    default: "semgrep-results.sarif"
+
+outputs:
+  sarif-file:
+    description: "Path to the generated SARIF file."
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "PLACEHOLDER — implement in Phase 2"
+      shell: bash
+      run: |
+        echo "Semgrep composite action not yet implemented. Phase 2 deliverable."
+        echo "See CLAUDE.md §7 Phase 2."
+        exit 0

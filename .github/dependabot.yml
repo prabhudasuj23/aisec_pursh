@@ -1,0 +1,79 @@
+version: 2
+
+updates:
+  # ── AISec Python backend ─────────────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/aisec"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "aisec"
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      # Pin major versions manually; auto-update patch + minor only
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── Pursh Python backend ──────────────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/pursh/backend"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "pursh"
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── AISec dashboard (Next.js) ─────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/aisec/dashboard"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "aisec"
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── Pursh frontend (Next.js) ──────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/pursh/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "pursh"
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── GitHub Actions ────────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
