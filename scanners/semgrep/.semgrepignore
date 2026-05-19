@@ -1,0 +1,12 @@
+# Semgrep ignore file
+# Paths that produce known-good false positives are listed here with justification.
+# Every entry must have a comment explaining why it is excluded.
+
+# Test fixtures intentionally contain vulnerable patterns for ZAP/scanner testing
+pursh/backend/tests/fixtures/
+
+# Golden SARIF files in test contracts contain raw scanner output (not production code)
+aisec/app/tests/contracts/
+
+# Seed scripts use raw SQL for Synthea data loading — not production query paths
+pursh/seed/

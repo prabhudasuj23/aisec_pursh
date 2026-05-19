@@ -1,0 +1,99 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "gitleaks",
+          "version": "8.18.2",
+          "informationUri": "https://github.com/gitleaks/gitleaks",
+          "rules": [
+            {
+              "id": "aws-access-token",
+              "name": "AWSAccessToken",
+              "shortDescription": {
+                "text": "AWS Access Key ID detected in source code."
+              },
+              "fullDescription": {
+                "text": "An AWS Access Key ID was found committed to source code. This credential grants access to AWS services and must be rotated immediately."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Rotate this credential immediately in the AWS console. Remove it from git history using git-filter-repo or BFG. Store future credentials in AWS Secrets Manager or environment variables injected at runtime. Never commit credentials to source control."
+              },
+              "properties": {
+                "cwe": ["CWE-798: Use of Hard-coded Credentials"],
+                "tags": ["secret", "aws", "credentials"]
+              }
+            },
+            {
+              "id": "generic-api-key",
+              "name": "GenericAPIKey",
+              "shortDescription": {
+                "text": "Generic high-entropy API key detected."
+              },
+              "fullDescription": {
+                "text": "A high-entropy string matching a generic API key pattern was found. Review whether this is a real credential."
+              },
+              "defaultConfiguration": { "level": "warning" },
+              "help": {
+                "text": "If this is a real API key, rotate it and move it to a secrets manager. If it is test data, add it to .gitleaks.toml allowlist with a justification comment."
+              },
+              "properties": {
+                "cwe": ["CWE-798: Use of Hard-coded Credentials"],
+                "tags": ["secret", "api-key"]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "aws-access-token",
+          "level": "error",
+          "message": {
+            "text": "AWS Access Key ID found: AKIAIOSFODNN7EXAMPLE"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/core/config.py" },
+                "region": {
+                  "startLine": 17,
+                  "endLine": 17,
+                  "snippet": { "text": "AWS_ACCESS_KEY_ID = \"AKIAIOSFODNN7EXAMPLE\"" }
+                }
+              }
+            }
+          ],
+          "fingerprints": {
+            "matchBasedId/v1": "abc123def456"
+          }
+        },
+        {
+          "ruleId": "generic-api-key",
+          "level": "warning",
+          "message": {
+            "text": "High-entropy API key found in environment config."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/.env.example" },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 5,
+                  "snippet": { "text": "STRIPE_API_KEY=sk_test_XXXXXXXXXXXX_EXAMPLE_NOT_REAL" }
+                }
+              }
+            }
+          ],
+          "fingerprints": {
+            "matchBasedId/v1": "xyz789ghi012"
+          }
+        }
+      ]
+    }
+  ]
+}

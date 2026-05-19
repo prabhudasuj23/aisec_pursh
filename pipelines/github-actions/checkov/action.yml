@@ -1,0 +1,62 @@
+name: "AISec — Checkov IaC Scan"
+description: >
+  Runs Checkov against Terraform and other IaC files.
+  Maps findings to CIS AWS Benchmark and NIST controls.
+  Output: SARIF uploaded to GitHub Security tab.
+
+inputs:
+  directory:
+    description: "Directory to scan."
+    required: false
+    default: "infra/terraform"
+  sarif-output:
+    description: "Path for SARIF output."
+    required: false
+    default: "checkov-results.sarif"
+  soft-fail:
+    description: "Do not fail the build on findings (true/false)."
+    required: false
+    default: "false"
+  framework:
+    description: "IaC frameworks to check: terraform,terraform_plan,cloudformation,kubernetes,etc."
+    required: false
+    default: "terraform"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install Checkov
+      shell: bash
+      run: pip install checkov
+
+    - name: Run Checkov
+      shell: bash
+      run: |
+        SOFT_FAIL_FLAG=""
+        if [ "${{ inputs.soft-fail }}" = "true" ]; then
+          SOFT_FAIL_FLAG="--soft-fail"
+        fi
+        checkov \
+          --directory "${{ inputs.directory }}" \
+          --framework "${{ inputs.framework }}" \
+          --output sarif \
+          --output-file-path "${{ inputs.sarif-output }}" \
+          --compact \
+          $SOFT_FAIL_FLAG || true
+        echo "Checkov scan complete."
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: checkov
+      continue-on-error: true

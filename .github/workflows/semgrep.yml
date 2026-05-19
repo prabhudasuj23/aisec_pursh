@@ -1,0 +1,66 @@
+name: SAST — Semgrep
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"   # Weekly full scan Monday 03:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write    # reviewdog PR comments
+
+jobs:
+  semgrep-pursh:
+    name: Semgrep — Pursh (scan target)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Semgrep SAST on Pursh
+        uses: ./.github/actions/semgrep   # local composite (symlinked from pipelines/)
+        with:
+          target-dir: pursh/
+          sarif-output: semgrep-pursh.sarif
+          rules: >-
+            p/python
+            p/javascript
+            p/security-audit
+            p/owasp-top-ten
+            p/secrets
+            p/sql-injection
+            p/xss
+        continue-on-error: false
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-pursh-sarif
+          path: semgrep-pursh.sarif
+          retention-days: 30
+
+      - name: Ingest findings into AISec
+        if: always()
+        run: |
+          echo "Phase 13: AISec ingest POST will be wired here once dashboard is live."
+          echo "SARIF file: semgrep-pursh.sarif"
+
+  semgrep-aisec:
+    name: Semgrep — AISec (dogfooding)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Semgrep SAST on AISec (eat your own dog food)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/python
+            p/security-audit
+            p/owasp-top-ten
+        env:
+          SEMGREP_TIMEOUT: 300
+        continue-on-error: true

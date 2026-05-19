@@ -67,7 +67,7 @@ async def ingest_sarif(
             errors=exc.error_count(),
         )
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail=f"Invalid SARIF document: {exc.error_count()} validation error(s).",
         ) from exc
 

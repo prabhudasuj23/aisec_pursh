@@ -1,0 +1,90 @@
+name: Container — Trivy Image Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "aisec/Dockerfile"
+      - "pursh/backend/Dockerfile"
+      - "aisec/app/**"
+      - "pursh/backend/**"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  packages: write
+
+jobs:
+  build-and-scan-aisec:
+    name: Build + Scan — AISec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build AISec image
+        uses: docker/build-push-action@v5
+        with:
+          context: aisec/
+          file: aisec/Dockerfile
+          push: false
+          load: true
+          tags: aisec:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy image scan — AISec
+        uses: ./.github/actions/trivy-image
+        with:
+          image-ref: "aisec:${{ github.sha }}"
+          sarif-output: trivy-aisec-image.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-aisec-image-sarif
+          path: trivy-aisec-image.sarif
+          retention-days: 30
+
+  build-and-scan-pursh:
+    name: Build + Scan — Pursh Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Pursh backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: pursh/backend/
+          file: pursh/backend/Dockerfile
+          push: false
+          load: true
+          tags: pursh-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy image scan — Pursh backend
+        uses: ./.github/actions/trivy-image
+        with:
+          image-ref: "pursh-backend:${{ github.sha }}"
+          sarif-output: trivy-pursh-image.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-pursh-image-sarif
+          path: trivy-pursh-image.sarif
+          retention-days: 30

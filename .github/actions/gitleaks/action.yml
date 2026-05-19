@@ -1,28 +1,20 @@
 name: "AISec — Gitleaks Secrets Scan"
-description: >
-  Runs Gitleaks against the repository to detect leaked secrets.
-  Supports PR diff scan (fast) and full-history scan (scheduled).
-  Uses custom rules from scanners/gitleaks/.gitleaks.toml.
+description: "Delegates to pipelines/github-actions/gitleaks/action.yml — source of truth."
 
 inputs:
   scan-type:
-    description: "detect (current state) or protect (staged changes) or git (full history)."
     required: false
     default: "detect"
   source:
-    description: "Path to scan."
     required: false
     default: "."
   config-path:
-    description: "Path to .gitleaks.toml config."
     required: false
     default: "scanners/gitleaks/.gitleaks.toml"
   sarif-output:
-    description: "Path for SARIF output."
     required: false
     default: "gitleaks-results.sarif"
   fail-on-leak:
-    description: "Exit 1 if leaks found (true/false)."
     required: false
     default: "true"
 

@@ -1,0 +1,28 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Image tag to deploy')
+    string(name: 'REPO_URL', defaultValue: '', description: 'Git repo with k8s manifests')
+  }
+  environment {
+    GIT_CRED = 'gitlab_cred'
+  }
+  stages {
+    stage('Checkout manifests') {
+      steps {
+        checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: params.REPO_URL, credentialsId: env.GIT_CRED]]])
+      }
+    }
+
+    stage('Update image tag') {
+      steps {
+        sh "sed -i 's|image: .*|image: docker.io/your-username/demo-app:${IMAGE_TAG}|' kubernetes/deployment.yaml"
+        sh 'git config user.email "jenkins@example.com"'
+        sh 'git config user.name "Jenkins CI"'
+        sh 'git add kubernetes/deployment.yaml'
+        sh 'git commit -m "ci: update image tag to ${IMAGE_TAG} [ci skip]" || true'
+        sh 'git push origin main'
+      }
+    }
+  }
+}

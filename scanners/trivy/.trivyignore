@@ -1,0 +1,6 @@
+# Trivy ignore file
+# Every entry must have a CVE/vuln ID and a justification comment.
+# Format: <CVE-ID>  # <justification> | expires: YYYY-MM-DD
+
+# Example (remove and replace with real ignores as they arise):
+# CVE-2023-XXXXX  # Test dependency only, not reachable in production | expires: 2025-12-31

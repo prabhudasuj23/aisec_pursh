@@ -1,0 +1,40 @@
+name: "AISec — tfsec Terraform Security Scan"
+description: >
+  Runs tfsec (Trivy's Terraform scanner) for additional IaC security checks.
+  Cross-validates with Checkov — separate DB, different rule coverage.
+  Output: SARIF uploaded to GitHub Security tab.
+
+inputs:
+  directory:
+    description: "Terraform directory to scan."
+    required: false
+    default: "infra/terraform"
+  sarif-output:
+    description: "Path for SARIF output."
+    required: false
+    default: "tfsec-results.sarif"
+  soft-fail:
+    description: "Do not fail the build on findings (true/false)."
+    required: false
+    default: "false"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run tfsec
+      uses: aquasecurity/tfsec-sarif-action@v0.1.4
+      with:
+        working_directory: ${{ inputs.directory }}
+        sarif_file: ${{ inputs.sarif-output }}
+        soft_fail_on_warnings: ${{ inputs.soft-fail }}
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: tfsec
+      continue-on-error: true

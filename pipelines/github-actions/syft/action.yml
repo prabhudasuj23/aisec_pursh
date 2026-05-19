@@ -1,0 +1,69 @@
+name: "AISec — Syft SBOM Generation"
+description: >
+  Generates a Software Bill of Materials using Syft.
+  Outputs both CycloneDX 1.5 (JSON) and SPDX 2.3 (JSON) formats.
+  Uploaded as GitHub artifacts and optionally to S3.
+
+inputs:
+  target-dir:
+    description: "Directory or image reference to generate SBOM for."
+    required: false
+    default: "."
+  cyclonedx-output:
+    description: "CycloneDX 1.5 JSON output path."
+    required: false
+    default: "sbom.cyclonedx.json"
+  spdx-output:
+    description: "SPDX 2.3 JSON output path."
+    required: false
+    default: "sbom.spdx.json"
+  scope:
+    description: "Syft scope: all-layers or squashed (for containers)."
+    required: false
+    default: "all-layers"
+
+outputs:
+  cyclonedx-file:
+    description: "Path to CycloneDX SBOM."
+    value: ${{ inputs.cyclonedx-output }}
+  spdx-file:
+    description: "Path to SPDX SBOM."
+    value: ${{ inputs.spdx-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Syft
+      shell: bash
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+          | sh -s -- -b /usr/local/bin v1.4.1
+
+    - name: Generate CycloneDX SBOM
+      shell: bash
+      run: |
+        syft "${{ inputs.target-dir }}" \
+          -o cyclonedx-json="${{ inputs.cyclonedx-output }}" \
+          --scope "${{ inputs.scope }}"
+        echo "CycloneDX SBOM generated: ${{ inputs.cyclonedx-output }}"
+
+    - name: Generate SPDX SBOM
+      shell: bash
+      run: |
+        syft "${{ inputs.target-dir }}" \
+          -o spdx-json="${{ inputs.spdx-output }}" \
+          --scope "${{ inputs.scope }}"
+        echo "SPDX SBOM generated: ${{ inputs.spdx-output }}"
+
+    - name: Component count
+      shell: bash
+      run: |
+        COUNT=$(python3 -c "
+        import json
+        try:
+            data = json.load(open('${{ inputs.cyclonedx-output }}'))
+            print(len(data.get('components', [])))
+        except Exception:
+            print(0)
+        ")
+        echo "SBOM components: $COUNT"

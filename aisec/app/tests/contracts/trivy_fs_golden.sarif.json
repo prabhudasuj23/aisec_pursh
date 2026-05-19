@@ -1,0 +1,134 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Trivy",
+          "version": "0.50.1",
+          "informationUri": "https://github.com/aquasecurity/trivy",
+          "rules": [
+            {
+              "id": "CVE-2023-32681",
+              "name": "CVE-2023-32681",
+              "shortDescription": {
+                "text": "requests: Unintended leak of Proxy-Authorization header"
+              },
+              "fullDescription": {
+                "text": "Since Requests v2.3.0, Requests has been leaking Proxy-Authorization headers to destination servers when redirected to an HTTPS endpoint. Only Proxied HTTPS requests with custom Proxy-Authorization headers are affected."
+              },
+              "defaultConfiguration": { "level": "warning" },
+              "help": {
+                "text": "Upgrade requests to version 2.31.0 or later."
+              },
+              "properties": {
+                "tags": ["vulnerability", "python", "pip"],
+                "precision": "very-high",
+                "security-severity": "6.1",
+                "cwe": ["CWE-1104: Use of Unmaintained Third Party Components"]
+              }
+            },
+            {
+              "id": "CVE-2024-35195",
+              "name": "CVE-2024-35195",
+              "shortDescription": {
+                "text": "requests: subsequent requests to the same host ignore cert verification"
+              },
+              "fullDescription": {
+                "text": "When making requests through a Requests Session, if the first request is made with verify=False, all subsequent requests to the same origin will also ignore cert verification regardless of the verify value passed explicitly."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Upgrade requests to version 2.32.2 or later. Ensure verify=True is the default."
+              },
+              "properties": {
+                "tags": ["vulnerability", "python", "pip"],
+                "precision": "very-high",
+                "security-severity": "5.6",
+                "cwe": ["CWE-1104: Use of Unmaintained Third Party Components"]
+              }
+            },
+            {
+              "id": "trivy-secret-aws-access-key",
+              "name": "AWSAccessKey",
+              "shortDescription": {
+                "text": "AWS Access Key ID detected in filesystem scan."
+              },
+              "fullDescription": {
+                "text": "Trivy secret scanner found an AWS Access Key ID pattern in the repository filesystem."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Rotate this key immediately. Use AWS IAM roles or Secrets Manager. Never store credentials in files committed to source control."
+              },
+              "properties": {
+                "tags": ["secret", "aws"],
+                "cwe": ["CWE-798: Use of Hard-coded Credentials"]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2023-32681",
+          "level": "warning",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.28.0\nFixed Version: 2.31.0\nVulnerability CVE-2023-32681"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/requirements.txt" },
+                "region": {
+                  "startLine": 3,
+                  "endLine": 3,
+                  "snippet": { "text": "requests==2.28.0" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-35195",
+          "level": "error",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.28.0\nFixed Version: 2.32.2\nVulnerability CVE-2024-35195"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/requirements.txt" },
+                "region": {
+                  "startLine": 3,
+                  "endLine": 3,
+                  "snippet": { "text": "requests==2.28.0" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "trivy-secret-aws-access-key",
+          "level": "error",
+          "message": {
+            "text": "AWS Access Key ID found in configuration file."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "infra/terraform/pursh/main.tf" },
+                "region": {
+                  "startLine": 22,
+                  "endLine": 22,
+                  "snippet": { "text": "  access_key = \"AKIAIOSFODNN7EXAMPLE\"" }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

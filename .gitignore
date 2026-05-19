@@ -114,6 +114,12 @@ trivy-output/
 gitleaks-report/
 checkov-output/
 *.sarif.raw
+scan-results/
+
+# ── Downloaded scanner binaries (use CI-installed versions) ──────────────────
+scanners/gitleaks-bin/
+scanners/grype-bin/
+scanners/*.zip
 
 # ── Local dev overrides ───────────────────────────────────────────────────────
 docker-compose.override.yml

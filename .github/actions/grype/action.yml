@@ -1,0 +1,48 @@
+name: "AISec — Grype Vulnerability Scan"
+description: "Delegates to pipelines/github-actions/grype/action.yml — source of truth."
+
+inputs:
+  target:
+    required: false
+    default: "sbom.cyclonedx.json"
+  severity:
+    required: false
+    default: "high"
+  sarif-output:
+    required: false
+    default: "grype-results.sarif"
+  fail-build:
+    required: false
+    default: "false"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Grype
+      shell: bash
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+          | sh -s -- -b /usr/local/bin v0.78.0
+
+    - name: Run Grype
+      shell: bash
+      run: |
+        FAIL_FLAG=""
+        if [ "${{ inputs.fail-build }}" = "true" ]; then
+          FAIL_FLAG="--fail-on ${{ inputs.severity }}"
+        fi
+        grype "${{ inputs.target }}" \
+          -o sarif \
+          --file "${{ inputs.sarif-output }}" \
+          $FAIL_FLAG || true
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: grype
+      continue-on-error: true

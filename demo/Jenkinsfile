@@ -1,0 +1,89 @@
+pipeline {
+  agent { label 'build' }
+  environment {
+    DOCKER_REGISTRY = 'docker.io/your-username' // change to your registry
+    REGISTRY_CREDENTIAL_ID = 'dockerhub'         // Jenkins credential id
+    SONAR_SERVER = 'mySonar'                     // SonarQube server id in Jenkins
+    SONAR_CRED = 'sonar_token'                   // Sonar token credential id
+    GIT_CRED = 'gitlab_cred'                     // Git credential id
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build & Unit Tests') {
+      steps {
+        sh 'mvn -B -DskipTests=false clean package'
+      }
+    }
+
+    stage('Code Coverage') {
+      steps {
+        // JaCoCo runs as part of maven build if configured in pom.xml
+        sh 'echo "Code coverage report produced by JaCoCo (mvn)"'
+      }
+    }
+
+    stage('SCA - Dependency Check') {
+      steps {
+        sh 'mvn org.owasp:dependency-check-maven:check'
+      }
+    }
+
+    stage('SonarQube Scan') {
+      steps {
+        withSonarQubeEnv(SONAR_SERVER) {
+          sh 'mvn sonar:sonar -Dsonar.projectKey=demo-app'
+        }
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 5, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          def imageName = "${DOCKER_REGISTRY}/demo-app:${env.BUILD_NUMBER}"
+          docker.withRegistry('', REGISTRY_CREDENTIAL_ID) {
+            def img = docker.build(imageName)
+            img.push()
+          }
+          env.IMAGE_NAME = imageName
+        }
+      }
+    }
+
+    stage('Image Scan (Trivy)') {
+      steps {
+        sh "trivy image --exit-code 1 --severity CRITICAL ${env.IMAGE_NAME} || true"
+        // Decide policy: fail pipeline if you want
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        sh "./demo/smoke-test.sh ${env.IMAGE_NAME}"
+      }
+    }
+
+    stage('Trigger CD') {
+      steps {
+        build job: 'demo-cd', parameters: [string(name: 'IMAGE_TAG', value: "${env.BUILD_NUMBER}"), string(name: 'REPO_URL', value: scm.userRemoteConfigs[0].url)], wait: false
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+    }
+  }
+}

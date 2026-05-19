@@ -1,0 +1,3983 @@
+again thanks everyone for joining and my
+name is
+Adam now
+ideally uh you know when we are working
+as a devops
+engineer one of the common task that you
+would get or one of the important
+automation that we have to help an
+organization or a product is setting up
+cicd pipelines right and that's also
+going to be one of the common question
+that anyone would ask you in the
+interview so being that uh this session
+uh would be mainly focusing on what
+exactly is the cicd pipeline and in
+terms of security how do you implement
+the def secops into the cicd okay so
+that way let's Deep dive into the
+concepts about what's exactly CI what's
+CD and how do we add the security which
+is the depic Ops towards it okay so to
+get started let's kind of first
+understand uh in in a
+general workflow in any organization so
+what
+happens first developer writes a code
+and that would be given to QA where they
+do different kind of testing and once QA
+certifies the product we deploy that
+application into a environment called
+staging environment and this is where we
+test based out of how the customer would
+access which is what we call it as the
+user acceptant testing and once this is
+done then we put our product into a
+environment called production and this
+is where customers will
+access
+however with the market moving very
+faster so what exactly we need is is a
+continuous delivery of your product
+whether you take Facebook LinkedIn or
+any banking site or your shopping
+website or any e-commerce site so we
+need the delivery of the products
+continuously on our web page right so
+for this what we have to understand is
+almost everyone in the organization has
+to
+continuously work which means for
+delivering a product continuously the
+work starts with the developer where
+continuously with whatever the
+requirement they get developers have to
+write the code or the program and then
+equally that code has to be tested
+continuously by QA and whatever the code
+that has been certified by QA we need to
+continuously put it or deploy it into
+staging or production environment and
+that's exactly what the customers will
+be accessing so this process where the
+developers continuously work followed by
+QA continuously taking that and testing
+and then the code which QA has certified
+we continuously deploy it into
+production so that customers can access
+now this is exactly what we call it as
+continuous delivery now however if you
+look closely so continuous delivery is a
+practice which is when whatever the code
+which developers continuous ly modify
+depending on the requirement we test it
+and we make sure that code is ready for
+production and eventually your entire
+continuous delivery process can be
+divided into two categories so that is
+CI and CD
+so the automation or the work which we
+continuously do to
+integrate the development and the
+testing is what we call it as Ci or
+continuous integration and at the same
+time the code that has been certified by
+QA how do we make sure that it is put
+into the staging or production
+environment so that the customers can
+access is what we call it as continuous
+deployment so basically when I say cicd
+cicd is the process which helps us to
+implement continuous delivery so that
+right from the beginning how a developer
+modifies the code you take it and hand
+it over to QA and QA can test it and
+once the QA tested we put it into
+production right so this is when for us
+implementing continuous delivery is
+where we kind of implement your cicd so
+cicd is needed because every company is
+focusing towards continuous delivery so
+let's be clear on that first on why
+exactly do we need cicd but still if we
+take one more step so most of the time
+when you go out and see any of your
+YouTube videos or any Google right uh
+notes usually when we say cicd it's not
+a single stretch of automation where we
+build a test and put it into production
+so you have to divide or ideally it is
+divided into two parts of automation
+especially when we are trying to
+automate as I was showing in the
+previous slide we need to automate it
+into two halves so the one half is
+automating the build which is where as
+soon as a developer completes his work
+how do we take that code convert it into
+a product and how do we give it to QA
+right and at the same time when I have a
+product how do I make sure whether if I
+want to deploy it on a QA environment or
+on a staging environment or a production
+environment I need to have the ability
+so that's when your cicd is ideally not
+a single stretch of automation but it is
+kind of divided into two parts one is
+the build Pipeline and the deployment
+Pipeline and that's where when we are
+adding security and also automating this
+end to n cicd it is important for us to
+understand each part separately and then
+how both of them are connected to form a
+end to end pipeline which is what we
+call it as cicd all right so now let's
+get into each part one by one so first
+let's understand how do we automate and
+secure your build Pipeline and then
+we'll understand how do we automate and
+secure your deployment Pipeline and in
+the dep secops how do we connect these
+two to form your n2n CD pipeline all
+right
+so now as most of you understand so when
+I say a build a build is a process where
+you take a program or a source code of a
+program and you convert it into a
+product or artifact which can be
+consumed by QA or customer but in a
+traditional method what happens is well
+now assume you have a bunch of
+developers where we store all our code
+into a server like gitlab or GitHub now
+eventually when a developer modifies the
+code on his local workspace or on his
+workstation he or she will do a unit
+test followed by if that is fine then
+they will go ahead and commit and push
+the code from their local report to
+remote repository the same way every
+developer will go through this
+process but what happens is when we want
+QA to test so usually we wait for some
+time to accumulate all the changes which
+different developers have done and then
+we take the code Cod at some point of
+time in a day and we go ahead and do a
+build now this way of building is what
+we generally call it as nightly bills
+okay so this is one of the traditional
+method which we were following now what
+happens in this method once in a while
+so let's assume once in 5 hours or 6
+hours you do a build and if that build
+is Success we give it to QA but what
+happens if a build fails now why would a
+build fail because there could be a
+problem in any one of the developers
+code or the developer has modified and
+he has tested his code which is called
+as unit testing but when multiple codes
+are combining sometimes that might not
+work and that's exactly when what
+happens is when we do a build and if the
+build fails for any reason then the
+problem that we have is we need to ask
+QA to wait because we don't have a
+successful build and we don't have a
+product or artifact created so QA has to
+wait now if QA Waits what will happen
+your continuous testing is not happening
+right if QA doesn't complete the testing
+you will not be even going to the next
+step which is called a CD or continuous
+deployment
+so this is one of the problem the next
+problem is okay we need to ask
+developers to fix the code now for a
+developer to fix the code which
+developer you will ask because in a
+matter of 5 to six hours there might be
+10 or 15 commit IDs and there might be
+multiple developers who would have
+modified the code so which developer you
+will go and ask and that's exactly when
+it takes a lot of time for us to debug
+and find out which is the exact code
+which is having the problem now overall
+when we follow this traditional method
+what happens is
+we take lot of time to identify the
+problem or a bug and at the same time QA
+has to wait and this will cause our
+continuous delivery to be interrupted or
+in other words you will not be having
+continuous delivery your release will be
+delayed and this is when our interest is
+to overcome these issues and to enable
+continuous delivery which means as soon
+as the developer completes his work we
+should be in a position to test it okay
+or if there is an issue we should be
+able to immediately tell the developer
+that your code has a problem please fix
+it as soon as possible and this is
+where the market came up with a new
+process of automating the build or the
+build pipeline which is what we call it
+as continuous integration okay so let's
+first understand that so what is CI or
+continuous integration so it's a process
+in which instead of waiting for some
+time as soon as a developer modifies his
+code and pushes it to the remote or the
+central repository we immediately build
+it and we check whether we can give that
+build to the QA or if there is an issue
+and build fails ask the developer to
+immediately fix and if you try to see
+how it works so the same way now when a
+developer modifies the code
+immediately we do a build okay and when
+this build is Success we give it to QA
+and if it fails we go back and
+immediately tell the developer that hey
+your code which you modified is not
+working fine that could be for a unit
+test it is not working or while the code
+got integrated with other code it might
+not be working for whatever reason if
+the build fails immediately we go back
+and tell the developer so this way as
+soon as a developer modifies the code we
+will have the ability to create a
+product or do the build and tell if the
+build is success I can give it to QA so
+this ensures there is a continuous
+development because what is continuous
+development it is not that developer
+will just write code and throw it off
+well the code that he has given should
+not have any problem if it has problem
+he should take it and immediately fix
+and once again give it back that's what
+we call it as continuous development so
+in this method developers will be able
+to continuously develop and they will
+know in case if there is a problem you
+can find it out immediately so
+continuous integration is a process in
+which the developers will be able to
+find out if there is a problem
+immediately because as soon as the
+developer modifies the code and pushes
+the code to the remote repos itory
+immediately we do the build and we tell
+if it is failing who is causing the
+problem and the same way now since if
+one developer push the code and if it is
+not working fine immediately there will
+be one more developer who is modifying
+the code and if his code is successfully
+built QA can take it and go ahead to the
+testing so that way they don't have to
+wait correct so the earlier problem
+problem whichever was introduced by a
+developer one he will be fixing the code
+whereas the second developer whose code
+is working fine we can go ahead and
+further do the testing so that way
+continuous development will be happening
+continuous testing will be happening and
+the same thing can be delivered so you
+will be able to reach faster releases
+and in other words continuous
+integration helps us to drive the
+continuous delivery process okay and not
+only that it helps us to improve the
+quality because instead of accumulating
+all the code and doing testing in one go
+as soon as you get a code if you are
+able to test it immediately if there is
+any bugs we will be able to find and fix
+it so that way with the help of
+continuous integration you will be able
+to do faster releases and the quality of
+your application or product would be
+very very high okay and not only that in
+continuous delivery CI is your most
+important and the first part which
+enables us to drive so that way let's
+first understand now if you are going to
+set up your cicd pipeline the first
+pipeline that you have to set up is
+automating the build in which whenever a
+developer pushes a code to a particular
+repository you should be able to
+immediately
+trigger a build and tell the developer
+whether it is good or it is not good all
+right so
+now let us get into the pipeline stages
+okay and ideally well we are not just
+focusing about a regular CI build or a
+regular build pipeline but we need to
+implement a security towards it so that
+is where applying Security on top of
+anything becomes depops okay so now our
+focus is how do we automate a Ci or a
+build Pipeline and in that we are trying
+to see how do we ensure more and more
+security can be implemented and that's
+where in a real time okay there are
+close to nine stages which we have to
+think about implementing to make it a
+successful depth secops build pipeline
+okay but other than that in general if
+you understand it's just a build
+pipeline if I trigger this pipeline for
+every commit or every time a developer
+pushes the code then this build pipeline
+is called as continuous integration
+build pipeline okay why I'm saying this
+word it's not always necessary that
+every time a developer checks in a code
+you need to trigger because logically
+it's not possible to make it that much
+why let's go to a company where you have
+hundreds of Developers and in the same
+time you will be having five to six
+commit IDs pushed so you didn't think at
+the same time you will be able to
+trigger five BS no so logically it
+depends on the organization there might
+be some Gap but continuous integration
+is more the ability which we need to
+introduce in the Automation in such a
+way if a developer wants they can enable
+a pipeline Automation in such a way as
+soon as they commit or push the code to
+a remote repository a pipeline should
+get triggered but but if not def secops
+is for the entire pipeline so what are
+these nine stages which we need to
+follow as of now in the market which is
+what is expected okay so let's take step
+by step and first let's understand what
+are these stages and we will see how do
+we Implement and automate all right
+so now any build pipeline that you take
+the default stage will be to check out
+the code from a particular repository
+and in that also you need to check out
+the code of a particular Branch correct
+because whether you are setting up this
+build pipeline for a feature Branch or a
+integration Branch it's up to the team
+but ideally the very first default stage
+will be when you run the pipeline you
+need to check out to the right
+repository and the correct branch that
+you want okay okay then what do we do as
+the actual first stage is build and unit
+test okay so what is the purpose of
+build an unit test so you convert your
+raw code or source code into a product
+or a deliverable right and this pipeline
+stages Remains the Same or common for
+almost any type of programming language
+or any application that you take so for
+example let's say you have a Java based
+application
+so your build stage will make sure you
+generate a jar or a VAR file same way if
+you have any other pramming languages
+probably you might get a zip file or a
+tar pile as the artifact so that way the
+first stage focuses
+on converting your source code into a
+product or an artifact which can be
+consumed and at the same time we also go
+ahead and do the unit test now there
+might be a question at this point like
+why do we want to do the units test
+because in the first slide I was trying
+to tell developer also does a unit test
+and push us the code so why do we want
+to do it here now this is where even
+though we call it as unit test the
+difference is we are going to take all
+the code that is there in the repo and
+we will be doing the unit test of all of
+them individually so that way you can
+call it as a integrated test not a
+integration test but you are doing unit
+test of multiple code which are
+integrated together whereas what does
+the developer does before he commits the
+code he will be doing a unit test of
+only one or two files for example if
+it's a Java project then he or she will
+be testing one or two Java files which
+they have modified and they will push
+that code whereas in the build we take
+all the code that is there at that point
+of time and we run the unit test against
+all all of that code so that's the
+difference so it is still unit test but
+we do unit test of almost all the codes
+that is available now for this depending
+on the programming languages there are
+different different tools that are
+available right now in our example I'll
+be just taking up a Java based
+application or a spring boot application
+so for which one of the popular tool
+that we would be using is a tool called
+mavan so the first stage will be to
+build
+and to unit test your code okay once
+that is done the next step or the next
+stage in depops is called as code
+coverage okay what is code coverage now
+most of the time the name itself will
+give you an
+answer what is code coverage well to
+understand it now let's take this
+question in the first step
+after the build we ran some unit test
+okay so pay attention now let's say
+there was four test cases which we
+executed in the build stage now all the
+four is Success now can we guarantee
+that the product is good
+or whether have we really
+tested the entire product together now
+that might be confusing again so let me
+be more clear let's say when we do a
+build there was 10 files and each file
+had 100 lines in it just assumption so
+overall I have th000 lines so now when
+you did a unit test after the build and
+let's say you executed four test cases
+and all the four test cases are passed
+but can we tell whether that four test
+cases has really covered all those
+thousand
+lines we cannot tell or we don't really
+know correct how again just an example
+I'll tell you take your mobile phone I'm
+telling you okay I will give you four
+test cases and tell me whether this
+mobile is good or not what are those
+four twist cases so I will just tell you
+first switch on the mobile and check
+whether login screen is working fine
+second test case I will say switch Char
+your phone and see whether it is
+shutting down properly and third thing I
+will say make a call to some number and
+check whether you're able to do the call
+okay and fourth thing I will say is
+connect to Wi-Fi and then check whether
+internet is working well these are the
+four test cases now can you guarantee me
+with this four test cases is this phone
+good we cannot why because you have used
+this phone so you know very well it has
+lot of other applications there's lot of
+other functionalities right so for four
+test
+cases you have tested something but you
+cannot guarantee that this four test
+cases is sufficient to test this entire
+mobile the same way when in the first
+build stage we ran four test
+cases when the four test cases is
+Success we cannot guarantee that it is
+sufficient so that is when what we need
+is a step where we need to check how
+many lines of code we have in our
+product and the test whatever we have
+run you need test how many lines has it
+really completed and that step is what
+we call it as code coverage okay so
+usually when we run code coverage we get
+the result in some percentage so now
+let's say you had the same 10 files with
+th000 lines and you are getting the code
+coverage as 60 %. so what do you mean
+that means by running those four test
+cases what you have really covered is
+around 600 lines and still 400 lines has
+not been covered so this is how from the
+result of code coverage we will be able
+to find out whether do we need more test
+cases to ensure that whatever the
+remaining code which has not been tested
+will be covered because when the
+coverage of the code is more through
+your test or when you do more test you
+can always ensure your quality of the
+product will also be higher so that way
+code coverage will help us to find out
+whether we need more unit test to be
+done but at the same time it can also
+tell you whether the code which is not
+been tested is it really needed or is it
+some unnecessary code or a junk code
+which the developer has put just like a
+mobile I know that the basic
+functionality of the mobile but you
+install some unnecessary apps in it does
+it really need that you have to test all
+those app because I don't need that
+functionality the same way when a
+developer writes a code it is not that
+whatever he writes we should be able to
+test we can also guarantee that okay now
+I have run some test cases and I'm sure
+that these are the only test cases
+needed for my product then why is it
+code coverage still showing that the
+there is some percentage not covered so
+that will help us to find out if we need
+more test to be done or if the code is a
+unnecessary code or unused code which is
+something we can remove so by doing this
+what will happen you will ensure quality
+of the product will be good and
+performance of your product will be good
+and this is where in dep secops we need
+to run code coverage after the build and
+why should you do the code coverage
+after the build because when you do the
+build you also do the unit test and for
+code coverage unit test is the input got
+it so that's how you first do the build
+and unit test and then you do the code
+coverage
+okay now again there are many tools
+preferably available in the market open
+source and Enterprise but depending on
+what programming language that you are
+using to build
+and for that there are some specific
+tools now one of the example that what
+I'll be using and one of the most
+popular tool in the market for code
+coverage is jaako so we will see in the
+automation once you do the build and
+unit test how do we use a tool or a
+plug-in called jaako and find out how
+much of code has been really covered by
+your unit test and decide whether we
+need more unit test to be done or is
+there any unnecessary code which we can
+remove to improve the performance all
+right now once you complete your code
+coverage the third stage what we will be
+going into is called as static analysis
+or we also call it as software
+composition analysis okay
+SCA so what does SCA mean so now
+developer has written a code but many
+times what happen we don't write the
+code from scratch we might be copy
+pasting from some place in Internet or
+from some other blogs now this is where
+every application we need to make sure
+that we don't have any dependency of
+some third party application or we are
+not adding any open-source code into our
+product because if you are taking a code
+which is already licensed as open source
+and if you add it to your product and
+you sell your product then it is going
+to be a issue so that is where it is
+mandatory for us to find out whether
+developers have used some kind of Open
+Source Code which could cause some
+license issue or which could cause some
+vulnerabilities because we don't know
+right you're taking a open source
+definitely there could be lot of issues
+and not only that does it have any other
+dependency code which is not being owned
+by the company so that way your sea step
+helps us to find out those kind of code
+and we will be able to tell whether
+these kind of code has to be removed
+okay so we also call it a static
+analysis because you can do this step
+even before the build or you can do it
+in parallel with the build as such there
+is no hardcoded rules saying that you
+should be doing it as a third stage but
+it's just a best practice what we always
+do is once we do the code coverage we go
+ahead and do the static analysis but
+either way remember you can do the
+static analysis first and then you can
+do the build also not a problem because
+for the sca you don't need to do the
+build you just need the raw code that
+means you have the Java code or the
+JavaScript or nodejs or python code you
+can just take the raw code and you and
+do the analysis but anyway just remember
+this is going to be one of the stage and
+again there are plenty of tools
+available in the market but I prefer to
+take a open- source tool which is be by
+a community called oasp so first of all
+you have to understand what is oasp like
+how for different different applications
+different rules so for web application
+security there is a community or a group
+called as oasp okay now they give us lot
+of rules and tools using which we can
+make sure that if my application
+developed is a web application I can
+secure it so in that way dependency
+check is a tool using which you can
+ensure whether your source code that is
+whether your Java code or a node code
+has any vulnerability because of a third
+party application or a open source code
+all right so this is how now you not
+only telling your product you can build
+the code but you're also finding out how
+much of the code coverage and does your
+code has any open- Source vulnerability
+or a third party dependency clear okay
+now once you finish it the next stage
+which is important for us in the defic
+Ops is
+sast what is sast so sast stands for
+static application security testing once
+again it is static so the meaning of
+static means you don't have to run your
+application but we need to build the
+application so so far what we have done
+we build the application and we have
+checked the code but this time you will
+take your actual application but but you
+don't have to run it okay now this is a
+mistake because sometime without knowing
+if you tell for sast you run the
+application that's very clear you
+haven't done so for sast you don't have
+to run the application but you need the
+application now what we will do in this
+is we will scan the application and we
+will try to find out whether our actual
+code has any
+vulnerabilities okay because this is
+where so far all we checked is whether
+our code has been really covered in the
+test case and whether our code has a
+open-source vulnerability or third party
+dependency but this is where we actually
+check our actual propriatary code is it
+vulnerable okay so is it hackable or
+does it have anything like a memory leak
+or another important thing which you
+will do in the SAS scanning is have you
+followed the coding practice because
+anything we buy there is a certain
+certificate for example you are buying
+some product especially I'm talking in
+India do you know that there is
+something called as an ISO standard so
+you can guarantee yourself that okay I
+buy a product and if there is a ISO
+standard then they have followed some
+protocol and I can guarantee it's of
+good quality the same way every
+application a company goes through has
+to follow some standards okay and this
+changes from country to Country so that
+is where
+sometimes uh product generated in or
+developed in one country will not be
+accepted in another country because they
+don't follow some protocols or best
+practices and that way now when you are
+developing your code based on the
+company we need to set up some policies
+and say whether have the developer
+followed that practice and is the code
+within the same standard that you have
+followed so how do you make sure because
+we are not talking about one line or two
+line just the example in the beginning I
+said you have 10 files with th000 lines
+now what if in real time I tell you your
+application will have th000 files and
+million lines of code so it's not
+possible for us to sit and check whether
+every line of code is following a best
+practice and that's exactly what we do
+in the sast okay so what is the purpose
+of sast to find out whether your code
+has any vulnerability in the web and at
+the same time have you followed the
+coding standard to make sure your code
+is secure so that way the sast will give
+us those results and usually what
+happens when we get a result in sast
+right if there is a vulnerability
+vulnerability means issue so usually we
+categorize into critical or high or
+medium or low so as the name says low
+means well it's not going to cause any
+impact medium means there are some small
+small impacts that can happen High means
+definitely it is going to cause some
+problem critical vulnerability means if
+you put it definitely nothing will work
+or it is completely hackable so that's
+where depending on the vulnerability
+type you will also get a result saying
+how many vulnerabilities are there in
+your code and what is the category
+whether it is critical high or low at
+the same time how many lines of code has
+the policies not adhering or it has some
+coding issue so it'll also tell us all
+right now what are the tools that you
+can use for that now again there are
+many tools in the market but one of the
+popular tool which I personally like is
+sonar Cube now people use sonar cube
+without knowing why they are using it
+now sonar cube is a open source as well
+as an Enterprise tool and it acts as a
+sast scanner so using Sonar Cube you can
+do a scanning for the sast results of
+your application and why sonar Cube
+preferably if you ask me it can help you
+to do the scanning against various
+programming languages so not just one
+tool okay so that's where one of the
+most widely on preferable tool for sast
+is sonar Cube scanner so using which you
+will be able to find out how much of
+vulnerabilities and what is the type of
+vulnerability that you will be having in
+your code all right so by this step what
+is that we have done if you just recall
+quickly we do a build we run the unit
+test and after that we do the code
+coverage and we generate some percentage
+we do the static analysis that is SCA
+and we generate some scanned result and
+we also do sast and we generate some
+scan and
+result what is the next step we have to
+do so now you understand these are the
+steps which are we are going to automate
+it as part of our pipeline so we are not
+just trying to run one by one manually
+everything is automated that's why we
+call it as pipeline so now in a company
+if you are following depops so the next
+thing what you have to do is what is the
+standard that you follow in the company
+which will tell whether a code code is
+good code or not that is whether the
+code is quality or not okay and that how
+do you check because you will now get a
+result of code coverage you will get the
+result of sea and sast now combining all
+the three we need to put some kind of
+rules which will tell for
+example if my code coverage is above 80%
+then only I will say your code is good
+if I get a vulnerability list if the
+vulnerability is not above medium or
+high only then I will say your code is
+good or if I say the number of lines has
+coding issue is less than let's say 100
+lines then I will say your code is good
+so this way we need to set up what we
+call it as a standard and only only when
+the results what we have got out of this
+three steps that is code coverage sea
+and sast is within the results of our
+standard then I will follow or we should
+be immediately telling your code is not
+good code and how do we do it
+automatically and that is when the fifth
+stage of our Dev secops pipeline in the
+build is quality gate as the name says
+gate for a quality so it is like code
+has come through this fourth step in the
+fifth stage what we are telling I will
+put a standard if all the results from
+this is okay for me only then I will
+allow the code to go through my gate if
+not we will block okay so that is how
+you are putting a gate for your quality
+so what is quality gate it's just a
+standard stage in which you check all
+the code what you have written and take
+the results of all the three stages and
+check whether it is within your
+standards what you want so that is when
+for every company they will have their
+own standards like an example I said I
+can say in my company code coverage will
+be not less than 90% which means code
+coverage definitely has to be more than
+90% vulnerabilities should not be
+greater than high and I can say the
+number of duplicate lines should not be
+greater than 100 so assume this is my
+standard so if my code doesn't match
+this it is equivalent of saying your
+code is not good for testing so
+immediately we should stop our Pipeline
+and indicate it to the developer or
+notify to the developer why because what
+is the point of implementing dep secops
+is not just to tell that I will build
+and give it to QA if there is a
+issue continuously tell the developer
+that there is a problem because you
+understand the output of a build
+pipeline is not just a product but
+whether the product is of a good quality
+and can I really test it that is what is
+the intention of your continuous
+integration build so this way what do we
+do is we run the quality gate and if the
+quality gate fails we tell the developer
+to fix the code and if the quality gate
+passes then we will say okay let's go to
+the next stage now how how do we achieve
+it now this is where the sonar Cube tool
+that I was telling you earlier basically
+has two uses so sonar Cube has something
+called as scanner which can help us to
+do the sast scanning against our
+application as well as sonar cube is a
+web application so it has a dashboard in
+which we can store all the three results
+of code coverage sea and sast and we can
+also do our quality gate check whether
+what is my standard and whether all the
+three results has been passing it or not
+so that way we will see in the
+automation little later your sonar Cube
+also has a dashboard in which we can
+collect all the three results and we can
+do a quality gate check okay so that way
+once again we will be using Sonar Cube
+for this so what we will do in our
+pipeline is we will run the individual
+codee coverage SCA and sast we will
+store all of that into a sonar Cube web
+page or a sonar Cube dashboard and then
+we run the quality Gates against it and
+check whether we are meeting our
+standards all right so now if your code
+has passed the quality Gates standard
+then we go ahead with the next stage so
+what's the next stage now this is where
+we are talking about modern deployment
+so now instead of traditionally taking
+your application going to a machine
+installing and running the modern way of
+running your application is through
+containers okay and for that you might
+use Docker or you might use kubernetes
+but before that if you want your
+application to be deployed as a
+container then what you need to do is
+generate a image out of it
+okay and this is what we call it as a
+Deployable artifact so your pipeline
+output will be a Deployable artifact
+which is a Docker image and that I can
+put it into open shift or into
+kubernetes and I can create a container
+which is nothing but deploying my
+application so that's when in Def secops
+only when your code has passed the
+quality gate you will go ahead and
+generate a Docker image
+and eventually for this you will have to
+develop a Docker file and you run the
+docker build command with the help of a
+Docker demon okay this way once you
+generate a Docker image what is the next
+thing you are going to do and in Def
+secops
+Now by doing sass or sea or code
+coverage you are guaranteeing your
+source code your application that you
+built is is good okay but now when you
+come to the build image step what do we
+do now this is where whenever we say
+building the image it is basically you
+take
+a base image which will contain some OS
+plus some dependent application and on
+top of that we add
+our application right so that's where in
+the docker image you will have have a OS
+layer we will have a dependency layer
+and you will also have a application
+layer so so far all you have done is the
+application or the application layer but
+now what is that QA or what is that we
+are going to run in production will be a
+Docker image converted into a container
+so that way we also need to
+certify what are the different layers
+available in your Docker image whether
+it has a vulnerability or not so that is
+when we need to do a scanning of your
+image so that the image along with your
+application what and all the other files
+or layers or operating system it is
+there does it have any vulnerability we
+can also find out because just by saying
+okay I generated a jar file or a zip
+file of my application that is good but
+I have put inside a image and that image
+has some issue or or the image has a OS
+which is vulnerable then obviously your
+production environment will be
+vulnerable and that's when what we have
+to do is along with your application
+what we are delivering it to QA or
+customer is a Docker image so we also
+have to scan your Docker image for
+vulnerabilities clear so that way the
+seventh stage is about scanning all the
+layers of the image to find out if there
+are any other vulnerabilities apart from
+your application
+and once again there are plenty of tools
+available well for the sake of our
+automation we can take trivy as one of
+the common tool and which is much more
+simple and lightweight that you can
+practice all
+right okay so what is that we have done
+so you so far ensured your application
+is secure it doesn't have any
+vulnerability you are able to build a
+Docker image which is what we call it as
+the Deployable artifact and that is also
+secured
+but in Def secops there is another basic
+which I say it as a common sense is okay
+you scanned there is no issue can I just
+go and give it to QA no why because it's
+again what if you ran the build you ran
+the image generation what if you have
+done some mistake in the docker file
+something is not added properly well
+your image generation is Success your
+scanning is also saying no issue but
+your image built is not proper and this
+is where in dep secops in your build
+pipeline one of the last stage what you
+have to do is test your image okay and
+technically we call it as smoke test so
+smoke test means it's just quickly to
+check whether it is usable or not well
+an example I can tell you
+so there is a assume there is a card
+which has been generated or manufactured
+now before they send it to showroom they
+just assemble all the parts right they
+just have to do one basic testing like
+put the petrol or gas and switch on and
+see whether the engine is starting
+whether all the basic Electric System is
+just starting they are not going to do a
+test drive and check just whether
+ignition is working or not right because
+what will happen think on this way they
+assembl everything but by mistake they
+didn't assemble properly or some nut and
+bolt is loose or very tight or some
+spark plug or some electric connection
+is not there what will happen when you
+go and send it to the showroom someone
+will see at that time they switch on
+nothing will work they say your car is
+not proper right so exactly the same way
+well you generate or you build your
+Docker image before handing it over to
+QA we need to quickly create a container
+from it and check whether I am able to
+create a container which means the image
+what I have generated is proper okay so
+that simple test to ensure that the
+image is proper is what we call it as
+smoke test and only when your smoke test
+is complete what do you certify so now
+we certify that okay the code what
+developer has modified it doesn't have
+any of the vulnerabilities and
+we are able to successfully build a
+Docker image which can be deployed by QA
+or which can be used by customer and at
+the same time it is ready for your
+testing and for the next step and that's
+how we create a basic container out of
+your image got it so only when your
+smoke test is completed now we send a
+notification and we go back and tell to
+the QA that QA okay now I have a Docker
+image which contains a jar file or
+application which has a code Modified by
+developer and please go ahead with your
+testing and that's how continuous
+integration is about running these
+stages which will take the code from the
+developer and give it to QA for the
+testing clear so I'll again repeat so
+what's the output of your CI build
+pipeline
+is a Docker image which certifies your
+application is ready for testing and
+that application doesn't have any
+vulnerability so that's how V Mark
+continuous development is done because
+in any one of the stages if there is
+issue we should stop the pipeline or the
+Automation and send the notification to
+the developer and say there is some
+issue which could be a code coverage
+issue or a vulnerability issue or a
+third party dependency issue or the
+image generation it is not working fine
+so that way either any one of the step
+is not working then it's equivalent to
+saying that your application is not
+ready for testing or your application
+has a issue with the quality all right
+cool so now let's go ahead and see how
+do we actually Implement our fun first
+part of our def secops pipeline which is
+this CI build pipeline
+okay okay so now all the code is already
+available in gitlab and it's been made
+as a public repo so you can always go
+ahead and clone and start working not
+only this all my previous projects are
+also there now if you log to gitlab.com
+learn devops easy and in that I want I
+want you to go inside
+depops okay now in this we are first
+focusing about spring boot build
+pipeline okay now I have a sample spring
+boot code in it which we will try to
+build and we will try to generate Docker
+image and also deploy that's for the
+next
+stage now the first thing what you have
+to do is how are you going to automate
+this and this is when a twole skin
+comes into the picture Okay so as a
+prerequisite what you have to do is make
+sure that you have a Jenkins server and
+with the help of that we will be able to
+automate this entire build and
+deployment pipeline but first for the
+build pipeline what and all you need so
+you need to have one Jenkins Master plus
+I need to do all this build and I need
+to generate this Docker image age as
+well as you need to do the smoke test So
+eventually you need one build machine
+okay so you need one machine to run your
+build run your unit test run your all
+the sast sca Docker image and your smoke
+test all of them and I also need another
+machine to install and set up sonar Cube
+okay now if you are familiar with sonar
+Cube which is available able in Cloud
+you can take it but again for this
+session I'm just trying to take three
+machines one for your Jenkins Master One
+to act as a build machine and one for
+your sonar Cube to run all right now
+this is when you can think of using
+terraform okay now that's where see the
+focus for this session is more towards
+the pipeline so that's the reason I'm
+not trying to put in any other fancy
+things just to cover up but ideally
+anything that you create in your infra
+or on your cloud like AWS think of
+using terraform okay but however I'll go
+ahead and quickly create two machines
+because I already have a Jenkins master
+so just to save time I have a machine
+already created in which Jenkins is
+installed so I'll go ahead and create
+two new
+machines all right and I'll just call it
+as
+build
+server and we'll take two machines I'll
+rename it and we'll take open 2 and this
+is
+when I need a little larger machine you
+can try with T2 micro but I would
+suggest you to take a little larger
+machine for this practicing so that
+everything will be faster and also Sona
+cube is a a little larger tool so what
+we will do I'll take two T2 medium Mach
+machine in which I'm going to get 2 CPU
+and 4GB RAM and go ahead and give a kpir
+for that and the
+default Network and again preferably
+have around 15 GB to 20gb because when
+you do so many builds and unit test and
+you are trying to run a lot of devops
+tools it will take some memory and space
+so ensure that you also have a good
+amount of storage and memory on the
+machine all right so let's go ahead and
+launch so meantime when it comes we'll
+just go ahead
+okay all the machines came so what I'll
+do I'll rename one of the machine to
+sonar
+Cube so that you will be clear so one
+Jenkins Master One build machine and one
+sonak
+CU all right so what's the next thing
+you're going to do now since we are
+using Jenkins we need to make sure sure
+that there are some plugins that we are
+going to use so let me first give you
+those
+details so if you come down I have
+already
+listed so we need to make sure that in
+our junkins we have these plugins
+already installed what are those so
+ideally when you install junkins you
+will get a suggested plug-in so git and
+jdk will be there but I want you to
+install a plugin called parameterized
+trigger
+plugin I mean we don't need anible for
+now I want you to install gitlab plugin
+okay and again we don't need artifactory
+but what we need is a Docker pipeline
+because we are going to automate the
+image generation and we need a pipeline
+for Amazon ECR because that is the
+location where we are going to push our
+images okay but optionally if you want
+we can also put it into Docker Hub so
+that's completely up to us so whether I
+can take ACR or Docker up so what I'll
+do probably let me change this and tell
+you what we can do right now so I don't
+need all of them
+so so this should be good for us so go
+ahead and make sure you
+have parameterized trigger plugin and
+gitlab plugin because our source code is
+going to be in gitlab and then Docker
+Pipeline and pipeline AWS steps followed
+by sonar Cube scanner and quality Gates
+plugin so these are all the plugins that
+we need to make sure that it is already
+installed in our Jenkins now I'll just
+update this code so that you can refer
+that later so once you have your Jenkins
+up and running just log in and again uh
+for the sake of reducing the time I have
+already pre-installed this plugin but
+still what you guys can do is go ahead
+and make sure if this plugin is not
+installed install it but let me show you
+what are those
+plugins so I don't have anything here
+it's uh new
+Jenkins now go
+to manage Jenkins manage
+plug-in and in your case if this plugins
+is not installed then you should be
+going
+inside available plugins okay now since
+I have already installed I'll be going
+into a tab called install plugins that's
+the difference
+okay so in your case you should go to
+available plugins but now since I've
+already installed I'm just going inside
+installed
+plugin and I'll show you
+these all right so first is
+parameterized trigger
+plug-in I have it installed next is
+gitlab
+plugin that's also installed and then
+you need the docker
+pipeline
+here okay and then check for pipeline
+AWS steps that's also installed and then
+sonar Cube scanner
+it's already there and finally the
+plugin called quality
+Gates okay so all the necessary plugins
+are installed but make sure in your case
+go to available plugins and choose all
+the plugins and install okay now once
+the plugins are installed what's the
+next thing we have to do okay so we have
+to set up some credential but even
+before that quickly let's go ahead and
+make sure our build machine has all the
+necessary things as well as we also have
+sonar Cube up and running so that we can
+automate the pipeline so what I'll do
+I'll go to the build
+machine okay so now you can cross check
+this machine has close to 4 GB RAM and
+it has around 15 GB of hard disk okay
+and it has two
+CPU LS CPU and it will show you you have
+two CPU all right and it's based out of
+UB
+224 so now what is that I have to do in
+this machine so on my build machine I
+need to
+install Java okay and this is where
+for Jenkins to connect to your slave
+machine we need latest version of java
+which is Java 11 however the code that I
+have taken runs only on Java 8 why I
+have taken because I want you to go
+through a real time scenario it's not
+always you take any Java and run so
+understand for running my master
+connecting to a slave machine I need
+Java 11 plus for our code to compile we
+need Java 8 so that is where on this new
+machine we need to make sure we have
+Java 8 Java 11 installed as well as we
+also have Docker installed so that we
+can generate the image plus we will also
+install the Tre command line so that you
+can scan your image now for all these
+what I have already done I have written
+a shell script which is again a small
+use case of how you can use a shell
+script now this is where again I can
+make it more fancy if you want you can
+put anible code and do it but for the
+sake of your practice it's easy if you
+just run the shell script so all you
+have to do is take the shell script and
+run and it'll make sure that it'll
+install
+jdk8 open jdk 11 your Docker and it'll
+also install trivy all right so instead
+of you copy pasting and sometimes you
+might miss so everything is available in
+the repo just simply do a clone and and
+execute
+it so what I'll do I'll quickly clone
+this again it's only for executing
+this so get
+clone and this is a shell script and I
+want you to run the shell script as root
+because we are as a user called Ubuntu
+so Ubuntu doesn't have privilege to
+install or update anything and that's
+where even if you run the shell script
+right it'll give you an error because
+this is why the use case of shell script
+is coming up okay see if I run it
+clearly says Asun to you cannot run so
+run it as pseudo so what I have to do
+just prefix pseudo and then run the
+shell
+script so this way even if I have two
+three machines it's very easy for me to
+take up my shell script okay
+let's just wait for some time
+okay it's now installing triy
+all right so it says your build server
+is ready so let's cross check so first
+do I have
+Java okay do I have Docker it's
+available and do I also have this tool
+called trivy for scanning my Docker
+image okay all of them are available and
+I also told you there are two versions
+of java so whenever you take a machine
+and you have more than one version
+always it'll be referring the highest
+version so that way what is it saying
+the version of java is 11 but this
+machine also has jdk8 so let's cross
+check so if you
+now do a LS and long list so this
+the file so you can see it's actually
+referring to user lib Java under a
+folder called Java 11 jdk but however if
+you go to this user lip folder you can
+see you also have a Java 8 so that's
+when if I access this
+right which is
+LS user
+lip
+jvm and Java 8 bin SL Java what you will
+be accessing is Java 8 so let me cross
+check here if I just say Java by default
+it is going to the open jdk 11 but now
+explicitly if I say go to this file and
+now if I say hyphen version it will give
+you so that's how if you want to access
+Java 11 just say Java it will take the
+default jdk 11 but if you want Java 8
+then explicitly you have to refer to
+this path so that is something we will
+do through our
+pipeline so so far good so we have our
+build machine ready in which we have
+installed
+Java Docker and 3v all right good
+enough now the next thing what we have
+to do is we need to install sonar Q okay
+on the
+gain instead of installing and running
+sonar Cube we can take a Docker image of
+sonar Cube
+and we can quickly deploy so that is
+where Docker is not only for our
+application or microservices even any
+third party application can be quickly
+deployed so what we will do now let's go
+to the second
+machine this is a Sona Cube
+server I'll connect to this
+again so in this machine all I need is
+Docker I don't need Java because Jenkins
+is not going to connect to this or we
+are not doing any build so what is that
+I need in this machine is purely Docker
+and with the help of it we can create a
+sonar Cube container okay so again
+follow the same steps which is available
+in the script or I have already copy
+pasted here so you can just run so sudo
+AP update
+and then go ahead and install
+Docker now once you install Docker
+usually you will not be able to access
+it as a user called ub2 so for that you
+need to make sure that your modifi Ying
+the user group of the Ubuntu to add a
+group called Docker and that's what we
+are doing here
+okay
+because for example I'll just show you
+see it'll give you an error so what you
+have to do is
+modify and then you need to log out and
+then log in again only then it'll work
+out so remember that whenever you do a
+user modification you have to log out
+and log in and now it will work so now
+go ahead and create a container out of
+this image so I'm taking the sonar Cube
+latest from the open source okay and
+sonar Cube runs on Port 9,000 so I'm
+just going to execute
+it so as usual if the image is not
+available it is going to
+download and it's going to create a
+container all right
+okay so now Docker PS you see there is a
+container created and it is running and
+the name of it is sonar so I can just
+say Docker logs and check whether it's
+running fine so wait for few seconds so
+that this should be
+successfully start now once it is
+started you can go ahead and access the
+the sonar Cube from this machine using
+Port 9,000 okay
+okay so this is
+up so take the public DNS and now if I
+say
+9,000 should have
+so the default
+username is admin and the default
+password is also admin so both are admin
+admin
+okay so now in case if it asks you to
+change the password go ahead and change
+so the old password is admin and I'll
+give the new
+password now remember this password
+all right so good so far so all we have
+done is one build a machine and we have
+another machine in which we have
+successfully installed Sona Q correct
+okay now to proceed
+further what we have to do is we need to
+add some
+credentials so that our Jenkins can
+connect to sonar Cube our Jenkins can
+connect to some registry like ACR or
+Docker Hub and you can push some images
+there okay so those are the two things
+that we want to do now for that first
+what we have to do is we need to
+generate a token okay and we need to
+give that token to Jenkins so that
+whenever Jenkins want to communicate to
+sonar Cube it will use that token so to
+generate a token
+go
+to account okay and come to
+security again where is it click on the
+administrator my account and in this go
+to security Tab and here you see there
+is no token so you can generate a token
+now there'll be two types so go ahead
+and take a global analysis token and
+generate so copy this
+token now this is the token what we are
+going to give to Jenkins now we have
+already installed the plug-in now this
+is why we need a plug-in because if you
+have not install the plugin then Jenkins
+will not have any option to connect to
+sonar Cube or any other tool so come
+back to
+Jenkins and this time go to manage
+Jenkins and
+credential so let's add all the
+credentials one by one okay and then
+we'll try to set up the pipeline
+okay so there is no credentials so far
+so click on
+global so the first credential we are
+going to create is for a sonar Cube
+token okay now for this make sure you
+are creating a credential of the type
+secret text so that is also important
+for you to know okay so for different
+different application different types of
+credential will be there so now I don't
+have any credential click on credential
+to add and now we have to create
+something called
+as secret text
+so here choose secret
+text and if you come
+down copy paste whatever the credential
+that you have got so once again copy it
+and and paste now for every credential
+in Junkin you need to give a name or a
+ID okay now since I've already developed
+a pipeline so what I'll do I'll try to
+take a name which I've already given so
+that's where you need to remember what
+name you have given and accordingly you
+have to write in your Jenkins file so
+here for sonar Cube I've already taken
+something called as my Sonar Cube I'll
+show you again
+but remember so what is the name called
+my Sonar Cube okay now I don't need this
+I can in fact give any name that doesn't
+matter if I want I can still give as my
+Sonar
+Cube
+create okay so now we have one
+credential which has the sonar Cube
+token now the next next thing what I
+have to do is I need to tell Jenkins
+where is the sonar Cube server and what
+token that it has to use so for that
+once again come
+to manage Jenkins and system so for any
+kind of URL or a web application you
+should use system if it is a command
+line tool then you should go to tool
+that is man Jenkins tool so right now
+sonar Cube is a web application or a URL
+so go to system
+configuration okay so search for sonar
+Cube so you would get an option here now
+again this will be available only if you
+have already installed the plug-in click
+on ADD sonar Cube and now you need to
+give a imail so the same name I'll try
+to give my Sonar Cube and it's asking
+for the URL so copy paste your url
+here so in junkins from now onwards I
+refer to my Sonar Cube as the name or
+the ID immediately it knows this is the
+URL and here what credential the
+credential just know we just added so
+that's why I'm keeping everything the
+same name okay so go ahead and say apply
+that's all so now in your Jenkins
+pipeline or the Jenkins file if I refer
+to this name Jenkins knows okay this is
+the server where sonar cube is running
+and to connect to that this is the
+credential it has to use so that our sea
+sast and code coverage results we will
+be pushing here and this is the same
+place where we will also do the quality
+Gates all right so this is the first
+step next what is that you have to do is
+you need to add a credential for your
+Docker Hub or ECR now here I'm taking
+dockerhub as our registry where we will
+store our Docker images okay now once
+again go back to your
+security and credentials and here in the
+credentials once again click on ADD
+credential and you you need to give your
+username and password for the docker Hub
+okay now again what is the name I'll
+just cross check
+here okay so I'll show you this code
+and so this time you will choose
+username and password okay so the
+username will
+be your do dockerhub username and the
+password will be your dockerhub password
+and for this I'm giving an ID called
+dockerhub
+so anytime in Jenkins if I refer to this
+ID called dockerhub it will use my name
+and my password just like we added one
+for Sona Cube this is another one okay
+so this is the second
+credential
+now the third thing what we need to add
+is AWS credential okay now this is
+needed in case if you are trying
+to push your image to something like ECR
+now since we have Docker Hub it should
+be good for us we don't need any AWS
+credential okay but what we have to do
+now is we need our chins to be able to
+connect to sonar Cube and validate the
+quality G step for that we need to add
+something called as a web hook I'll
+repeat why I need web hook we gave the
+URL to Jenkins so Jenkins can come to
+sonar Cube now if you are only pushing
+some content we can use that credential
+and the URL but when we are doing a
+stage called quality gate we want
+genkins to connect to sonar Cube and
+check whether the standard of your your
+code is followed or whether the quality
+gate step is failing now for that we
+need to add a step called what web hook
+and that is when what you have to do is
+first to add the web hook you need to
+First give a URL like this now this is
+where it's a standard URL which you need
+to remember I'll just highlight change
+this URL to your Jenkins URL colon 8080
+sonar Cube hyphen web hook remember it's
+a standard one so if you don't give this
+URL your junkins will not be able to
+communicate to sonar Cube for the
+quality gate step so what we have to do
+is I'll take the Jenkins URL
+here so be careful when you copy paste
+everything
+okay
+see so this is my
+server colon 8080 Sona Cube web hook all
+right so now go back to your Sona
+Cube I'll just open another
+page and here go to Administration and
+click on configuration and you will get
+an option called Web hook I say if it is
+small for you go to
+Administration configuration and web
+hook so we don't have any web hook
+create a web hook and again you give any
+name to it followed by this URL all
+right and then just go ahead and say
+create so you have a web hook created in
+your Sona Cube all right so that is the
+next step what we have done
+okay now eventually there's one more
+step which you have to do that is when
+I'll just show you in the pipeline so
+when we try to generate our sast and
+code
+coverage we will try to push all of them
+into Sona Cube but since we are using
+oasp dependency check for our
+SCA by default on the the opsource sonar
+Cube you will not be having a support
+okay so if you want the results of SCA
+coming from oasp dependency check to be
+visible in your sonar Cube then you have
+to install a plugin for that apart from
+that the code coverage and the sast you
+don't have to do anything it's available
+by default but additionally for the sea
+results coming from this dependency
+check tool we need to enable a plugin so
+what do you have to do for that see once
+again go to Administration and click on
+Marketplace and if you come down you
+should see that there is an option
+called understand the risk click on
+this and now here in this tab go ahead
+and type dependency check and you see
+you get this option and go ahead and
+install so by installing it now sonar
+Cube can show you the results of code
+coverage SCA coming from dependency
+check of OAS and your sast all the three
+it can show you which we can see all
+right now it's asking for restarting the
+server not an issue just go ahead and
+restart nothing will happen to your
+container it'll be intact just wait for
+a few seconds
+yep should be good now once it comes
+back you can just log in and cross
+check so now give the new password what
+you have
+updated okay so everything is good and
+however if you go to something called
+project we don't have anything so what
+we will do now we will ask Jenkins to
+scan and get all the details and we will
+try to upload it into a project and
+that's what we are going to do
+everything all right so so far whatever
+the prerequisites we need we have done
+just to repeat we have the credentials
+added for
+sonar Cube token and we have also added
+a web hook okay and we have also added
+the credential for what Docker Hub so
+that junkins can generate and push the
+image there all right now finally we'll
+come back to our Jenkins now we don't
+have the build machine so this is where
+let's go ahead and add a build machine
+but how are we connecting to the build
+machine through SSH so so basically your
+Jenkins will also do a SSH so you need a
+credential for your build server also
+just like how you do it from your
+command prompt okay so when the command
+promt you run so you will say SSH uh
+username IP address and a PM file right
+the same thing is what we are going to
+give it to
+chenin so what I'll do for that
+come back so manage chenin and manage
+node
+so click on new
+node okay you can go ahead and give a
+name so I'll call it as build
+server okay so I'll keep the executor as
+one and put the
+remote route directory as stem chunins
+now I need to give a
+label so I've already choosed build as
+the name so I'll give the label as
+build use it only with the matching
+label and connection is through SSH and
+this is where the host you now come back
+and go to the build server and take the
+private IP
+and here we have not given any
+credentials so instead of adding it here
+you can also directly add so click on
+ADD and this time
+choose SSH username with private key and
+again you don't have to give that's okay
+so username is uent to
+and here it's asking us to enter so
+click on this add and copy paste your PM
+file
+content so this is the command we use
+right so and I'm using a PM file called
+Master September
+24 let's just C this so make sure there
+are no spaces you copy
+okay at the time of recording it's
+raining so I might be sounding a little
+loud so now we have the credential
+added and go ahead and give this as
+manually trusted
+key okay and
+Save e
+so cross check
+whether we are able to connect our
+Jenkins Master to the
+slave now this is where if you remember
+in the beginning itself we have
+installed Java 11 so we don't have to do
+anything else so that's where our
+Jenkins Master should be able to
+successfully connect all right so now we
+have our build machine also now only one
+last thing I have to do is now if you're
+doing a git clone you might also be
+required to give a gitlab username and
+password and that is what I will be
+using for my git clone so that's where
+I'll just create one more credential
+called gitlab
+credential so go back to your security
+your
+credentials and here add again a new
+credential of the type username and
+password and this time we will give the
+username and password for
+gitlab okay now in case if it is a
+public repository you don't have to give
+in fact the repo what I've taken is
+public but it's a good practice when you
+are trying try it out with a private
+repository so make make sure you give a
+username and password so here I'll take
+username and
+password so this is
+my gitlab username and a
+password and for that give this ID as
+gitlab cred which is what I have already
+hardcoded so I'm preferring the same
+okay so with this we should be good with
+our build machine Sona Cube and we also
+have all the necessary plugins so now
+let's have a look at
+our junkins file because we are going to
+automate this entire stages how many
+stages I've told close to 8 to nine
+stages we will try to automate okay so
+now if you
+see okay so this is the project where we
+have a sample spring boot application
+and in this I already have a Jenkins
+file and you can see there are two
+Jenkins file here So eventually I want
+you guys to First Take the first Jenkins
+file to do only the build and we will
+take the second Jenkins file to do both
+CI and CD that is build and deployment
+so that way take your Jenkins
+file and let's go through the
+stages now the machine that I have
+already added belongs to a group called
+build so whenever we run this pipeline
+this is going to be a
+Global agent so all the stages will
+refer to the same machine okay then I'm
+trying to set up some environment
+variable which is again Global so for
+all the stages this value Remains the
+Same over here I'm referring to my
+account and my repository in GitHub okay
+So eventually it'll go to my account and
+under that
+it will create a new repo if it is not
+available but if it is available it will
+try to push into the same now all you
+guys have to do is change this name to
+your name and also I had created a
+credential of the type username and
+password in gen kits for dockerhub and
+that is what we are referring so if you
+go back here you will come to know so
+this was the one where I gave my
+credential for Docker Hub so what you
+can do is if you want you can change or
+you give your credential but eventually
+before we start make sure the
+credentials is available with the same
+ID and then just change the name to your
+login name of dockerhub
+so to get
+started the first stage what we have is
+to check out the code and again this is
+a demo so I'm just taking the main
+branch now you can choose choose which
+repo and which branch from that you have
+to check out so that's where we are
+going to do something like Ci build or
+integration build so however I'm
+referring to the same repo here and in
+this I am referring to the default
+branch called main branch okay and then
+the actual first stage is to build the
+code now since it's a spring boot or a
+Java based micros service we will use
+Maven to build it and for that we are
+going to call a command or a goal called
+Maven clean package so when you call
+Maven clean package if there are any
+existing output files like jars or test
+cases or even your def secop scanning
+whatever you did it'll delete all the
+previous output and from fresh it will
+try to compile unit test and it'll
+generate a jum R file okay however if
+you recall on the prerequisites that I
+had mentioned for our project we
+need Java
+8 okay because for running junkins we
+need Java 11 and for this project to
+build we need Java 8 so that's the
+reason I'm explicitly setting a
+environment variable called Java home
+and I'm referring to the path where your
+for Java home is there suppose if you
+want Java 11 so you don't have to do
+anything by default on the machine when
+you run Java command it'll always refer
+to Java 11 but since we want the maven
+command to run using Java 8 I'm setting
+up this environment variable okay so
+what will be the output of this we will
+get a spring boot jar file under a new
+folder called Target in fact Maven will
+create a folder called Target and all
+all the outputs will be stored in that
+and next we are going to
+call the second stage called code
+coverage now for code coverage we are
+going to use a plug-in called
+jaako now this is when it's not a
+separate tool but a plug-in for Maven
+because Maven is also based on Java so
+all you have to tell is what is the
+plugin that you need now remember to
+call the maven jaako goal or the plug-in
+we have to make sure that the details of
+this plugin is already available Why by
+default Maven understands only this goal
+like clean or package it doesn't
+understand any new goal so for that we
+need to make sure in the projects
+pom.xml or configuration file we have
+added the details about the plug-in so
+if you just go back to the project
+now for any Maven based project or Java
+based project you will see a SRC folder
+and a pom.xml now I've already added it
+for your reference so that you can just
+go inside and have a look so scroll down
+to the end and you should
+see that there is a plug-in called jaako
+Maven plugin already added and we are
+telling that to help us in generating
+output called cho. exe so when you run
+the jaako it will do code coverage and
+it will give us a report in a file
+called cho. exe okay and again this will
+be available inside the target folder so
+unless and until you don't add this
+plug-in in your pom.xml you cannot call
+the goal or the command like Maven chako
+so anyway I have added so we should be
+able to execute it without a problem so
+this way this output or this stage gives
+us a file called g.exe and that will be
+having the result of the code coverage
+okay then the next one is our software
+composition analysis or static analysis
+now for this we are going to use again a
+plug-in called oasp dependency check so
+just just like jaako plugin you don't
+have to install anything separately so
+just go back to your pom.xml and add a
+plug-in for your dependency check which
+is given by oasp so which version that
+you want and when you run
+it this will generate a HTML file and
+XML file with the name called dependency
+check so that will be the out put
+whether you have any
+vulnerabilities and do you have any
+open- Source dependency in your entire
+source code okay and once again if you
+look at this we are calling Maven with a
+specific goal called dependency check
+and for that again I need the same Java
+8 so that way the third stage what we
+will be doing is calling Maven and the
+dependency check plugin and the output
+of this will be a particular HTML and
+XML file which will have the
+vulnerability output okay so remember
+each stage has an output again I'll
+repeat the stage one that is built this
+will give us a unit test output and it
+will create the jar the code coverage
+from jaako we will get a file called
+jaako do EXE and when we run the static
+analysis using OAS dependency check you
+will get a XML file and a HTML file with
+the same name called dependency check
+okay now so once we complete our SCA
+then we go to
+sast okay now this is where if you
+recall while I was explaining you this I
+mentioned Sona Cube has two things one
+is the scanner and another one is the
+actual web application so what you have
+seen here is the sonar Cube dashboard or
+web application then where is our sonar
+scanner now this is the reason why we
+use Maven because everything is
+available as a plug-in so you don't have
+to install anything separately
+so Maven has a built-in plug-in for
+sonar Cube but when you run this goal
+called Maven sonar
+sonar Maven will try to scan your entire
+code with the help of sonar Cube scanner
+plug-in and it will find out any
+vulnerabilities and everything available
+and default it will try to push to the
+sonar Cube server or the sonar Cube
+dashboard I'll repeat repeat again if
+you're not clear when you run this
+command or goal called sonar sonar that
+is Maven sonar col and
+sonar Maven with the help of sonar
+scanner plug-in it will scan your entire
+application and your code and it'll find
+out whether your propriatary code has a
+vulnerability or have you not followed
+any coding standards and the result of
+that it will not store locally it will
+directly connect to a sonar Cube server
+so that is what scanner will do it will
+scan and it will upload to sonar Cube
+now this is where the question comes how
+does the sonar scanner know where is
+your sonar Cube dashboard or server so
+for that we are going to use a function
+here called with sonar Cube EnV and in
+that you see I'm giving a reference of a
+ID so this ID ID is exactly if you go
+back you could see that when we
+configured yesterday I gave a name
+called my Sonar Cube so whenever in
+Jenkins you refer to this name it will
+automatically know that okay you want me
+to go to this location and this is the
+credential to access it okay so that way
+now when you run this command called
+Maven sonar sonar Maven will generate
+the scann results of your sast and
+automatically it will upload it to the
+sonar Cube dashboard so that is
+how the sonar scanner will know where is
+your dashboard and that is why yesterday
+we had installed the sonar Cube plug-in
+in genkins and we gave this credential
+as well as this ID
+okay however I told you this we are not
+going to just push only only the sast
+results but we will also store the code
+coverage and sea results that is all the
+three results into sonar Cube so that
+you can do the next step called quality
+Gates and for that you can see along
+with the mavan sonar sonar we are
+passing an argument saying where is your
+code coverage output so basically I'm
+saying go to this location that is on
+your current folder you will get a
+Target and inside that there is a file
+try to take from it or you can also
+refer to the jaako
+dependency check Json and it's also
+available in a HTML file so you can tell
+both the file or any file of your choice
+okay and finally we are telling the name
+of the project which it should be
+appearing in sonar cube is vatch why
+because
+here I'll be having different different
+microservices or different different
+project right when I'm doing some
+scanning Security check and I want to
+store all the results how do I know for
+which project so that is how just like
+how you have in gitlab separate repo in
+dockerhub also you will have separate
+repo in sonar Cube also for every
+product or every microservice have a
+separate project and store everything
+and that is when here what happens now
+when the maven sonar sonar executes it
+will collect the sast results sea
+results code coverage results and it
+will connect to our sonar Cube dashboard
+and it will create a project called
+vatch and it will be storing there clear
+so that's how in this step we not only
+do the sast scanning but collect all the
+results and store it into sonar Cube
+okay now comes the next step so which is
+what we call it as quality Gates so now
+we did the sea code coverage sast and we
+collected the results and we have stored
+stored into sonar Cube now how do I
+check whether it is within our standards
+or not and that's when if you go back to
+sonar
+Cube okay so there is something called
+as quality Gates okay and this is when
+for every company they will be having
+their own policy or we call it as a
+quality profile sometimes in interview
+they might ask question what is quality
+gate what is quality profile so a
+quality profile is nothing but what are
+the checks that your company want to do
+to certify that the code is good and the
+quality gate is Success so if you recall
+in the beginning I was telling you like
+for example in my company I will set
+code coverages greater than 90%
+duplicate lines should be less than 100
+vulnerabilities should be below type B
+so similar to that every company can
+create their own profile and give it now
+for that you can click on this create
+and I'll just just show
+you all right so over here you can see
+you can add whatever the details that
+you want and create your own profile now
+as of now I'll just leave the default
+one so that you will get to use to what
+is there and it default says if it is
+less than 80% it's not a good code or if
+your duplicate code is greater than 3%
+that is is also a indication that your
+quality of the code is not good and if
+the vulnerability rating is
+anything as a then also we are going to
+consider it as a not a good code or
+these are the indications where your
+quality Gates would be failing okay so
+we already have the default so this is
+working fine so now what we have to do
+as our results get pushed into it we
+need to take this standard and compare
+whether the output what we have pushed
+is within our standards or not and
+that's where yesterday we installed a
+plugin called quality gate plug-in so
+what we will do is we will put up our
+fifth stage in which we will check
+whether the content or the data what we
+have pushed is matching those standards
+or not so for that once again we will
+use a plug-in called wait for Quality
+Gates so it's a function from a plugin
+which we have already installed what
+will this do it will exactly go to our
+project in sonar Cube and whatever the
+results we have just pushed it will
+evaluate and that is where where have
+you told where is the sonar Cube where
+have you told what is the project and
+that's when wait for for Quality gate
+this is a function it internally depends
+on a function called with sonar Cube ENB
+so the beauty of the Jenkins pipeline is
+you run the fourth stage and then you
+come to the fifth stage right so that
+way when it executes the fourth stage it
+knows this plug-in and it knows this ID
+because whenever I refer to my Sonar
+Cube as the ID Jenkins knows it has to
+go to this URL and same
+way when you call this function called
+wait for Quality gate internally Jenkins
+will check before the stage have you
+used this function anytime and if it is
+the case it will refer to the same ID so
+that is how the quality gate plugin will
+also know it has to go to the same sonar
+Cube server okay and in that which repo
+you have already given it here right vzv
+Tech so that is how it refers to the
+previous execution and picks up all the
+data from this function okay so that's
+why you might be surprised that I
+haven't given anything how does it know
+okay so it goes and collects the same
+information so that way
+your quality Gates
+plug-in will get invoked in the same
+sonar Cube dashboard and it'll try to
+check with our default standard what we
+have have given okay and all it will do
+is give the result okay so if everything
+is fine then you will get a status
+called okay if there is an issue where
+the profile or the standards what you
+have given is not matching the code then
+or the results then it will say not okay
+so that is where what we are trying to
+do is we are trying to check the status
+of this plug-in whatever it is written
+in if it is not okay then consider your
+quality gate has not passed and if my
+quality gate is not passed then I'm
+forcibly marking this stage as failure
+and I'm printing that I will stop the
+pipeline because your quality gate is
+not success so that's how you can
+guarantee any code which is going to the
+next stage has passed your quality gate
+and any chance if your quality gate is
+not passing your pipeline will break and
+stop then and there okay cool so so far
+now we guarantee that you do sea SASS
+and you do the code coverage you push to
+Sona Cube and you check whether they are
+within the standard and only if they are
+within the standards and you guarantee
+that your code quality is good we move
+to the next stage and the next stage is
+we do the build and once again many
+people I have seen they just write the
+standard commands like Docker login or
+Docker tag and Docker push now that's
+not a good way or that is not an actual
+realtime way of writing the code because
+you should not hardcode any commands or
+credentials and that's where we also
+have a plug-in for that and if you
+recall we have installed one more plugin
+called as Docker pipeline so because of
+that we will get a function called
+docker with registry now for this all
+I'm telling is use this
+credential so what is this registry
+credential if you go up it's a variable
+where it is pointing to an ID called
+dockerhub okay it's just a name and what
+is this ID called dockerhub if you come
+here so it refers to my username and
+password so that is where whatever the
+dockerhub username password you have
+given it'll exactly come here and now
+whatever the commands you are trying to
+run within this stage will be exactly
+going to dockerhub under your account
+okay this way you can take the same code
+and in fact you can push to any other
+repository in case if there is another
+micros service so that's the reason you
+really do not have to hard code or give
+any command so all you have to do is now
+call a function called Docker do build
+and this is equivalent to running a
+command called Docker build hyphen T
+followed by the name of the image colon
+what tag you want and followed by dot
+okay let me show you what is that so
+generally when you try to build a image
+you will say something like this right
+the image Name colon a tag and then dot
+the equivalent of that is what this
+function is going to do okay so now what
+is the name of the image you're not
+telling and where is it taking it from
+it takes everything from here all right
+so that's how only if I change the name
+on the top I'll be able to build and
+I'll be able to push this image and
+whatever the registry that I want so
+that's where when you are writing code
+real time means you should be able to
+reuse the code that's why we use Jenkins
+file okay
+then when I call this function called
+image push now this is exactly
+equivalent to running the command called
+Docker tag and then you give your image
+name followed by where is the repo where
+is the okay actually it's where is the
+registry where is the
+repo and what is the actual tag name
+that you want and then you will say
+Docker push and you have to give the
+actual name
+but instead of giving all this commands
+when you use this function and say image
+push now what is the name of the image
+my account SL demo cicd is the one so
+where it will push it is automatically
+going to push to Docker Hub and that
+also with the credentials what I have
+given okay so that's where there's
+nothing to hardcode and I have not given
+a tag so it'll always create a tag with
+the name called latest because what is
+the behavior of Docker when you build a
+image if you do not give a tag it'll
+always create a tag as latest now I'll
+show you how to change it in some time
+but for now let's see how it actually
+works so what will this do it will build
+a image called demo cicd latest tag and
+it'll push to my dockerhub account okay
+and then
+The Next Step what we do is check
+whether your image has
+vulnerabilities okay and that's when in
+your seventh step we call
+Trey and we go ahead and scan the same
+image what we have built so if you can
+see this is the name of the image what
+we have built in the previous stage and
+we are going to run the scan and what we
+are doing I'm redirecting the scan on
+output to a file called triy results.txt
+why now many times you will see
+YouTubers or people in Google will say
+okay you need to do a scan and for that
+you run the command called triy well
+that is correct but what you should do
+after running the scan well just like
+what you did a quality gates in the
+beginning you are not just going to run
+trivy and stop you need to find out
+whether trivy has told you whether this
+image has vulnerability or not and if it
+has vulnerability you need to stop your
+pipeline again where are you going to do
+and that's where we are not just running
+the triv command but in real time I also
+want to redirect which I will use it
+further to check whether my image has
+vulnerability or not so that way your
+seventh stage is to scan that image okay
+now scanning is done and the next step
+immediate that I'm going to
+is to do a smoke test now why I'm not
+checking whether my image has
+vulnerability immediately because see
+the logic is sometimes what will happen
+when you are building the application
+and you're preparing your release in
+initial time even though it has
+vulnerability some companies will say
+okay don't Focus so much into that
+because the time you take to fix the
+vulnerability might be two weeks or 3
+weeks and your overall release itself is
+2 months then should QA be waiting for
+almost 3 weeks without doing any testing
+so what they will tell logically or in
+real time is we as devops team we will
+be working towards how to fix those
+vulnerabilities however QA will further
+go ahead and test whether the
+application functionality is working
+fine but at some point of time we need
+to make the rule saying okay in my
+pipeline Beyond
+this day if a image has vulnerability I
+will not even allow further but until
+then I don't want to really do it in the
+beginning but that's where what we will
+do we will now try to do a smoke test
+and what I have done in this example is
+along with the smoke test I will also
+check whether your trivy has told any
+vulnerabilities are there so that
+means once again it is acting like a
+small quality gate here to ensure your
+image generated is working fine because
+I'm able to do the smoke test and at the
+same time the scan output of trivy
+whether it has vulnerability or not you
+can find out so that's where you can
+decide what to do and what not to do so
+for this the last stage is to do the
+smoke test now what is smoke test like I
+told you it's just about starting a car
+and check whether your engine is
+starting up your basic electricity
+supplies there in your car the same way
+just create a container and check
+whether the container is successfully
+running and then access the application
+and check whether your Port is
+accessible now since it's a spring boot
+the default Port of the application what
+we have built is port
+8080 okay so if you look at it all I'm
+trying to do is create a
+container okay with the same latest
+image and I'm mapping a port called 8080
+and I'm waiting for couple of seconds
+because this is the basics of kubernetes
+okay now for those who have already gone
+through the class you will know in
+kubernetes as soon as your
+application is started you will not be
+able to access because there is
+something called as a starting period
+right or a initial delay so just to make
+sure you don't have an issue there
+similar way I'm trying to do is wait for
+90 seconds and then I'm running a shell
+script here so once again I'm giving you
+realtime use cases on where and all you
+can use shell script okay so here I'm
+using a shell script to find out whether
+my container is running successfully the
+application and also I will check
+whether the image has vulnerabilities or
+not okay so let let me show you what the
+content of the file so let go to project
+and you see this is the shell script
+I've already stored in the
+repo so what I'm doing I'm trying to
+check whether your Local Host port 8080
+is accessible and again as a devops
+engineer some of the basics you need to
+know is whenever you access a web
+application if it
+returns uh code there is a meaning for
+each code okay so basically there's a
+error called 400 or a code called 400
+500 that is 3xx 4xs 5xx let me explain
+about this in another webinar deeply but
+if you are accessing a client or in
+simple words you are accessing a web
+application and if that web application
+is returning you a code called 20000
+that is HTTP 200 then consider it's a
+successful call okay so all I'm trying
+to do is that so if I access Local Host
+through a curl command and if I get a
+written status 200 then it means my
+application is working in fact it means
+my container is working and the same
+time if you go to this results file
+which was output of your trivy scan you
+will get lot of output in fact the image
+what we have taken is a open source so
+definitely there is a vulnerability so
+you can go to this and explore it later
+but all I'm just trying to check is do
+you have any input called critical okay
+and I'm not failing the pipeline so all
+I'm doing is putting a condition saying
+if there is vulnerabilities which has
+been found out through triy and the
+script will just print saying you have
+vulnerabilities so the output of the
+script will tell me whether my smoke
+test is successful and at the same time
+whether do I have a vulnerability or not
+all right so that's going to be the
+output now once it is done then I'm just
+going ahead and deleting the container
+that I created okay so this marks your
+end of the def secops build pipeline all
+right so now let's see how this gets
+executed in
+Practical so what we will do for this
+I'll go back to our Jenkins now we
+already have our build machine ready so
+let's create a
+new
+pipeline again remember your cicd is not
+a single pipeline so what we are
+focusing is the build pipeline to make
+sure we have a
+Deployable artifact which is Docker
+image where we are certifying it is good
+for testing and it doesn't have
+vulnerability okay so we'll call this as
+spring boot build
+Pipeline and it's a type called pipeline
+okay and this is where instead of using
+freestyle we recommend to use Jenkins
+file because it's a declarative approach
+and it's a code so I can reuse it how
+many ever times for whichever Branch I
+want
+okay all right so I'll just come down to
+the pipeline and uh let's give the
+reference of this
+repo go to
+sem and get and here give the URL now if
+your repo is a private repo then you
+have to give credential but as of now my
+repo is public so any one of you can
+access and practice so I don't have to
+give the credential and then it's asking
+on which branch so change this to
+whatever Branch you want so right now
+for me it's main branch and what is the
+name of your chenkin file so as I said
+we're going to take the first file which
+is Jenkins file so nothing to change all
+right so go ahead and Save
+all right so go ahead and do a dummy
+build for now and check is there any
+errors or everything is working
+fine now you can see the stages here at
+the same time if you want to look at the
+output console output click on this and
+you will get the console
+output so let's look at how this is
+progressing yeah whenever you are trying
+for real time don't just try with T2
+micro or small small machines take
+larger machines all right not a problem
+it says there is some problem with the
+buildt stage and you can see the entire
+steps has been skipped so let's look at
+why it
+failed okay so it says on this machine
+Maven is not found well let's cross
+check let's go to build
+server this the one 172 31 42 252 Let's
+cross check
+whether there's a
+machine 172 31 42 252 all right that's
+fine now let's
+connect so which me okay m is not
+installed why so if you go
+back this is the setup shell script we
+had and if you had looked at it and had
+purposly put it up in such a way that
+you should get error so that you debug
+and find out so what and all we
+installed in
+this Java 8 11 Docker and triy we didn't
+install Maven so we have to make sure
+Maven is also installed so all you have
+to do is go back and just say sud sudo
+apt install iPhone y MAV I'll just take
+a latest version of MAV
+so what I'll
+do let me add it into the script so that
+you guys can go through you don't have
+to get into this
+problem so I'll just
+add
+Maven here anyway I have committed so if
+you guys run the shell script in the
+beginning everything will be
+installed fine so now which m
+it's available so let's come back to our
+Pipeline and let's trigger the build
+again it's going through and meantime
+I'll just try to take
+the console output off a second build
+and see how it is
+going so now it's going through the
+build okay so it's checking out and it's
+go to the main branch and first what
+does it do come down you can see this is
+the first stage where it is running the
+command may clean
+package so for the first first time
+Maven will download all the plugin so
+it'll be a little slow but after that it
+should be
+faster okay I think it came to the next
+stage it's completed then it's going to
+the code coverage
+stage okay and uh yeah it's actually too
+big of output in the next output
+probably you can see so it has executed
+the mean jaako plug-in and now it
+started calling
+the next stage which is third stage that
+is software composition analysis and it
+is calling the oasp dependency check
+plug-in and that's when you should see
+that it's scanning okay so what will
+dependency check will do check for any
+opsource dependencies or third party
+Library vulnerabilities and you can see
+it has a huge list from the time where
+it was formed okay so every year there
+will be updates in the oasp where they
+say what are the new vulnerabilities so
+this check or the tool will check for
+every vulnerabilities until today okay
+so that's how it'll take some time okay
+so let's just wait for a few more
+seconds yeah it's still on
+2008 so again there there's a small
+database which it maintains locally also
+okay so don't think as an big database
+it's a small data which maintains so the
+second time when you run that would be
+faster but eventually first time it
+would be taking a lot of time okay so
+that's where in real time sometime
+companies might feel to run this in
+parallel along with your build stage if
+you want you can do because there is no
+dependency for the build in this that's
+why we call it as static analysis so by
+the time you do build you can also do in
+parallel your SCA step okay
+okay 12 more
+years it's
+2012 for
+just in case so this is my repo which I
+already have so we should be
+seeing that the images whatever we build
+we push it here for
+hm
+four more
+years
+[Music]
+for
+e for
+okay it's kind of
+slow
+for for
+okay it's almost there let just let's
+wait
+for few more seconds
+it's just updating its local database
+that I was refering
+earlier all
+right okay so
+it's completed the
+scanning okay and it says some vulnerab
+ities are found which we will see right
+because anyway that will be shown in the
+Sona Cube so now what is the next stage
+is our sast and that's when our sonar
+sonar command is going to be called and
+when the sonar sonar command is
+called okay so it'll exactly do the SAS
+scanning take the code coverage SCA and
+sast all together to the sonar Cube t
+dashboard under a project called vatch
+so if you scroll
+down yeah because of the first time it
+Maven is downloading all the plugins
+okay but now you can ideally see so here
+it takes all the values one by one
+okay all right so it completely took and
+now it says it's uploaded into this
+dashboard which is nothing but the URL
+of our Sona Cube and what's the next
+stage is quality Gates okay you can also
+cross check your SAS is done it went to
+Quality Gates and what we are doing in
+quality Gates your Jenkins is now
+connecting to sonar Cube once again and
+checking for this evaluation and it's
+saying that
+everything is good that means our code
+passed our quality gate and only then
+it's going to the next stage in which
+it's trying to run a build you can see
+the command and what image it is
+generating uh demo cicd latest and this
+is exactly what it does in the build
+stage okay and once the image is built
+it is going to run the same Docker tag
+command and Docker push and it is going
+to push into Docker hub
+all right I'll show you that and once
+that is done then comes our trivy okay
+now trivy is running and obviously this
+will also show some vulnerabilities in
+it and then the next stage is the smokes
+and in the smokes we are trying
+to
+create a container and wait for some
+time now quickly if you want to check
+whether the application is up you can
+also cross check that anyway it's
+waiting for 90 seconds this this the
+build server if I quickly go here and
+say
+8080 well this is our sample
+application okay so it's a sample spring
+boot which kind of has some plug-in to
+monitor a live car okay I've just taken
+some
+random code so you don't have to worry
+but ideally come
+back and it's still running and what's
+the
+result
+so so I'm just saying that your smoke
+test passed which means you're able to
+access the application and that P your
+image is also good and now even though
+there is vulnerabilities you can see it
+clearly says your image has
+vulnerabilities because if you open that
+text file from the build machine or from
+the build workspace you will see but
+like I said for our practice I don't
+want to fail this pipeline so all it is
+doing is printing the message and now it
+completed So eventually your pipeline is
+completed so assuming that this is
+Success you should see that there is a
+image pushed here which is
+latest see
+here just now all right so this is how
+every time when you run a build only
+when your pipeline goes through all the
+stages and you collect the necessary
+things right and verify whether your
+code is good and generate the image and
+also verify your image is good and then
+hand it over to testing all right so
+this completes what we call it as a
+build
+pipeline but
+to again step back what is that we want
+is a CI pipeline cic CD so what is
+CI as you were understanding in the
+beginning CI is just a process where as
+soon as a developer commits a code or
+pushes the code and I want this pipeline
+to be triggered automatically so all you
+have to do now is you have the Jenkins
+file everything is ready just make sure
+whenever a developer commits a code to a
+particular branch in a repo trigger this
+pipeline okay so that's what we want to
+do so for this what we have to do is go
+back to your repo now whether it is
+GitHub or gitlab now in our case we use
+gitlab so I'll go to the same project
+all
+right so in fact the same project here
+now in this first we need to make sure
+your genkins can access gitlab through a
+API just like how we added a web hook
+between genkins and sonar Cube access
+now gitlab has certain API which can
+trigger Jenkins because in Old method or
+in a traditional way we used to ask
+Jenkins to connect and check whether
+there is a new commit in the gitlab
+because that would be too much of
+performance perance issue but on the
+modern method applications like gitlab
+has a API called Web hook where your
+gitlab can trigger genkins so this is
+where similar to what we did a web hook
+in sonar Cube we are also going to set
+up a web hook for a particular repo so
+for that we have to generate a token
+again same thing like Sona Cube so
+generate a token for gitlab and give
+that to Jenkins and generate a web hook
+in in your gitlab and access the junkins
+through that so what we will do now go
+to your
+account
+MH and go to
+preferences now under this you should
+see something called as
+your access
+token all right now if you already have
+a token generate a new one so I'll
+delete it
+I'll generate a new
+token all right so I'll call it a demo
+any name can be given not a problem and
+you can also give expir date and what
+and all access you want so right now I
+want to give only read access I'll read
+repository and read API so only these
+two come down and go ahead and generate
+all right so make sure you have a copy
+of it and if you recall we have already
+installed a plug-in called gitlab plugin
+so this is when go back to
+credential add a new credential okay
+so now choose something called as gitlab
+API token as the type so come down copy
+paste your token and go ahead and give
+some name so I'll just call it as my
+gitlab
+token okay again now Jenkins needs to
+know where is your gitlab exactly like
+what we did for Sona Cube go back to
+system configuration so manage Jenkins
+and system configuration and under this
+since we have already installed the
+gitlab plugin search for the tab called
+gitlab and give this URL so since we are
+using the open source gitlab Cloud so
+you can just copy paste this
+only so search for
+gitlab so you see this now remove this
+option and it's asking to give a name
+all right right now this is when the URL
+will be gitlab and you can again give
+any
+name all right so whenever I refer to
+this chenkin will know that this is the
+location and what is the token is this
+token and just do a test connection and
+check whether it is
+working success which means my junkins
+and gitlab can connect between each
+other all right so now we have to create
+a web hook all right so that's important
+and that's where now go to your
+particular project okay so the token was
+for the entire git lab but for which
+project Whenever there is a commit you
+want to set up the CI pipeline so go to
+that particular project so this is my
+project so here go to settings and in
+the settings you have webbook so
+remember webbook has to be specific to
+the repo all right so now you can add a
+web hook and this is where you need to
+give the pipeline so what is the
+pipeline so you need to take
+this okay
+however there is a standard that you
+have to
+follow like how you gave here what you
+also have to do is whatever is the name
+of your project or the Jenkins job don't
+give it as job so
+here you can see it says URL 8080 job
+spring boot so instead of job call it as
+a project so that's one small change you
+have to do just like the web hook that
+you had for sonar Cube had a naming
+convention here also you have to give so
+it has to be your url colon 8080 SL
+project and the name of your job all
+right so let's come down and go to
+gitlab sorry here and give
+the URL and come down and now you need
+to tell for what you want to trigger so
+that's where from gitlab you can call it
+for a commit that you are doing on a
+particular Branch or you can also call
+it for a merge that you're doing from
+one branch to another Branch so there
+are a lot of options so for now for CI
+on a particular Branch like future
+Branch whenever someone or a developer
+commits a code I want to trigger so
+we'll go ahead with push event so click
+on this and you can also choose which
+branch so right now I have only one
+branch it doesn't matter but if you want
+you can change it so scroll down okay
+and just remove this because this is not
+a production gitlab so we don't have any
+certificate for authentication it's just
+a token so remove this and just go ahead
+and say add so now you should get a web
+hook now you can cross check first
+whether
+your gitlab is able to reach Jenkins so
+for that come here and click on this
+and click the push so you see you get a
+200 message so again just the same smoke
+test what I said so what does this
+guarantee us
+your gitlab is able to reach genkins but
+in fact whenever you do a check-in I
+want this automatically to trigger a job
+so let's go to Jenkins and see what is
+happening this is our Jenkins job it
+didn't trigger any new job why because
+this is where all you have verified is
+gitlab can call junkins but that is when
+in the basics of Jenkins you need to
+tell something called as a trigger so so
+when you should call so for our testing
+we triggered it on on demand basis but
+the other options you have is you can
+give a shedule or you have to now
+configure and tell to allow the event
+coming or the web hook coming from
+gitlab so that's where go to the
+job okay and you add a build trigger
+option which will allow a gitlab web
+hook to come so that way
+so come down and you should see the
+build trigger and you see an option now
+this is visible because we installed the
+gitlab plugin so now it is saying that
+whenever A change is pushed to gitlab
+allow just go ahead and allow it now if
+you don't want it for any merge request
+then remove keep it only for purely for
+a push event which means when a
+developer commits and pushes a code to
+this repository I should be able to
+trigger the build all right so let's go
+ahead and apply and now to test if I
+trigger I'm not going to do a commit
+I'll do it later but as soon as I call
+my web hook what should
+happen you should see this will call the
+Jenkins and Jenkins job should get
+triggered and we should have a build
+Trigg
+okay come
+back and let's look
+at all right and you see now you have
+your build triggered automatically by
+whom it was triggered by me how through
+a web hook so this is how your CI build
+is ready so there's nothing fancy so all
+you have to do is set up your build
+Pipeline and make sure you have a
+ability to trigger so that way now
+whenever there is a commit and a push
+happening on my repository the build
+will get triggered automatically so now
+this pipeline is called as CI buil
+pipeline that's all okay now I have the
+flexibility so whether I want to make it
+a Ci or I can schedule or I can run
+whenever I want all right cool so so far
+all we have done is in the cicd the
+first part on having your build pipeline
+so anytime when a developer commits a
+code so now we will generate a
+Deployable artifact called Docker image
+and we tell tell whether it is good for
+testing and it doesn't have any
+vulnerabilities if not we should go back
+and indicate the developer saying
+pipeline failed please have a look at it
+or we need to help the development team
+in fixing some of the issues like any
+vulnerabilities which are there okay now
+what's the second part of your cic which
+is deployment so once again first let's
+look at how we are going to do the
+deployment and then we will set up the
+pipeline and then we will introduce the
+def secops all right now for that what I
+want you to understand
+is
+now what do you mean by deployment now
+ideally at this point of time in the
+market whenever we say deploying your
+application as a container we will
+deploy it in kubernetes okay so being
+that so now assume I have developed some
+young
+file in which I will tell what are the
+objects that I need to run my Docker
+image that we have generated and pushed
+so let's say for example I have created
+a deployment object and a service object
+or a config map whatever that you want
+so now in a traditional deployment what
+do you do so there will be a kubernetes
+cluster like QA cluster and for that
+there will be a separate machine a
+workstation in which you will have a
+cube cutle command so you first download
+or do the clone of your yaml files from
+where you have stored and you just run
+the cube cutle apply command and the
+code will be taken to the cluster
+through the API server and the API
+server will create your parts
+deployments services or basically it
+will create container and run the
+application and this is where most of
+the people what you would see will say
+okay you want to automate it you can use
+Jenkins so now we have already written
+our pipeline all we can do is add one
+more stage in which we will say from the
+same build machine you run Cube cutle
+command and that's all because once you
+run the cube cutle command everything
+will go to the site now this way of
+doing it is a big no and in real time we
+never ever do this why because first of
+all your chin
+or the build machine will have access to
+the kubernetes cluster what if it is a
+production you will build and
+immediately you will run that is not at
+all possible why what if a user goes to
+the build machine and he can access the
+kubernetes cluster through the cube
+cutle so which is where it's not a
+secure way of doing okay so don't go
+just with the fancy tools but understand
+the reality never ever use Jenkins to
+run your kubernetes commands or cube
+cutle Comm command because your Jenkins
+has access and any user can access
+Jenkins so that's the biggest issue for
+dep secops and second thing now when you
+set it up as a
+pipeline you build the image so it is a
+new image you will build and what will
+get deployed the same New Image is what
+getting deployed so every time when a
+developer modifies the code and pushes
+the code his latest code will be taken
+we will generate a new jar file from his
+latest code we will put this latest jar
+into a new image and that new image is
+what we are deploying in container
+correct
+but what if QA wants to deploy a old
+build or they want to redeploy and
+basically what I'm asking is I don't
+want to do the build I just want only
+the deployment so how do you stop your
+pipeline or how do you tell the pipeline
+don't do the build just go to the last
+stage and deploy and deploy a old image
+so that's once again not possible in
+your traditional cicd if you use Jenkins
+to do that okay and the third and the
+important most thing is in reality we
+are not going to have one environment so
+ideally we are going to have QA
+environment for your functional test or
+integration test you have staging
+environment for uat and you have your
+production for customer and so when I
+say cicd I will build where will I
+deploy how will you deploy to QA how
+will you deploy to Stage how will you
+deploy to production so in one command
+how will I put everything and even
+before that you have to do testing and
+that's exactly the requirement where in
+devops what you need to understand is we
+are not going to do in real time one
+pipeline okay because I want to do a
+deployment to QA separately and then
+separate to stage and production so this
+kind of pipeline will not at all be
+useful and that's what in the beginning
+I told you keep your build pipeline
+separately and deployment pipeline
+separately so that we can achieve the
+security and at the same time I can
+deploy to any environment I want so
+that's what is going to be the real time
+so how are we going to solve and this is
+when in the modern cicd when we think of
+security as well as how do you Ensure
+sure you have the ability to only build
+only deploy or both build and deploy all
+this combination is not through Jenkins
+but by introducing another concept
+called
+kops okay now for those who are not
+completely familiar with kops now I have
+already put a video in the channel long
+back go and refer to it but anyway I'll
+try to give an overview of what exactly
+is that so like most of the tools in
+your devops right like your anible or in
+fact your kubernetes or
+terraform gitops is a concept where you
+tell your desired State and there will
+be a tool or automation which will help
+us to achieve so rather than going
+through your traditional method like you
+take the cube cutle command and apply
+and then change everything in the gitops
+method you don't even have to run the
+cube cutle command at all all you have
+to do is take your yaml file like your
+deployment yl file service yl file or a
+pod yaml file and give that to
+the tool or what we generally call it as
+a gitops controller or operator and what
+will that tool or operator do go to the
+cluster and it will do the actual
+deployment or upgrade so this way a user
+doesn't have to even access the
+kubernetes cluster so all we have to do
+is make sure that we have a tool like
+Argo CD because that is one of the
+popular tool that we use I mean you can
+use any other similar tool so I'm using
+Argo CD for that so now if I install
+Argo CD in my actual kubernetes cluster
+and we give the reference of a git repo
+where we have our yl file so now we have
+a repo for our source code like that is
+where we did our build image creation
+scanning that is separate now we are
+going to have a separate repo to store
+our cuet is yaml file so that is what
+you are going to refer to the Argo CD or
+the gitops controller so this way what
+will happen you want to do a deployment
+make sure that Argo CD or similar tool
+is monitoring and go and change your
+yaml file because now if I want to
+deploy build one I will just edit the
+yaml file and say build one and
+immediately Argo CD will find out okay
+you have modified something I will go
+ahead and deploy your build one and if I
+change it to build 10 it'll go ahead and
+build and deploy that now what if I say
+oh now I don't want build 11 but I want
+to deploy build three for some reason
+then just go here and change your yaml
+file by changing your desired status hey
+I want you to deploy build three that's
+all and immediately ago CD will take
+that and it'll go ahead and deploy so
+this way is too secure because you don't
+need a pipeline or you don't need a user
+to go to a cluster or run any Cube cutle
+command so typically keep your desired
+state that is your actual yaml file of
+your kubernetes in a repo and let a tool
+like Argo CD Monitor and connect to your
+cluster so the Argo CD or a tool similar
+to that is what will be connected to the
+cluster all right so
+eventually what we are going to do is
+now let's first see how this can be
+achieved okay so this is when I'm just
+stepping
+back for a minute all right
+to my repo and this is
+where if you go back
+to my projects and you can see there is
+one more project called Spring boot CD
+pipeline so the build pipeline repo has
+the source code for your build Docker
+image scanning and your results shell
+script all those things and similar to
+that I have another repo called Spring
+boot CD Pipeline and this has the code
+for our deployment okay now in this you
+see that I have a separate fer called
+kubernetes and I have a simple two file
+one is deployment. yaml so basically all
+it'll tell us take a image that I give
+all right and deploy and create a object
+called deployment and how many replicas
+I want two replicas all right and it's
+going to expose a port 8080 at the same
+time I have one more yaml file for
+object called service and I'm telling
+what is the type of service node port
+and you Expose and map to a port called
+31,000 so if my run my image I should be
+able to access a port called 31,000
+which indirect direct me to a service
+node port and that will direct me to any
+port all right fine so now this is when
+how do you set up
+your Argo CD so that is where whatever
+the clusters that you're going to have
+so again don't go with anything fancy
+for practicing but I can take a small
+cluster or you can take a eks or AKs any
+cluster that you want but preferably
+what I'll do is take a separate machine
+now and install a tool like kind or mini
+Cube using which you'll be able to
+quickly get a cluster for your practice
+all right so what I'll do let me create
+another machine now for my deployment
+and that is where I will install mini
+Cube and create a small all-in-one
+cluster okay so again for that I need a
+minimum of 4GB Ram to run so we already
+have three machine so I'll go ahead and
+create one more machine and I'll call it
+as mini
+Cube
+server and again it's going to be from
+Ubuntu latest
+24 and I'll take T2 medium
+so which is 4GB and I'll take my default
+PM key
+pair and we'll put it again under
+default all right should be
+good
+so wait for some time for the new server
+now once the server comes up all right I
+want to install mini Cube I've already
+given the instructions here you can just
+take the
+same now again mini Cube runs on Docker
+so make sure you have Docker first and
+then install and run mini
+Cube okay so we have our
+server so let me
+connect now make sure you run mini Cube
+as root
+okay so
+here you can just follow this
+instruction go ahead and install Docker
+first and then install Cube cutle so
+that initially if you want to look at
+something you can do but we don't need
+Cube cutle anywhere for our automation
+but since you are practicing you might
+have to just check few things so you can
+use Cube cutle so I'll
+install oh it's not at installed
+so I have which Cube cutle and we also
+have
+Docker and go ahead and install mini
+Cube and and what you have to do is you
+need to start mini Cube but before that
+there's one more dependency of a package
+called contract install that also now
+you need this if you are using
+AWS I'll now go ahead and start mini
+Cube so only if your machine has minimum
+of two CPUs in 4GB your mini Cube will
+also run that's the reason I said take a
+little larger
+machine all right so once everything is
+done
+we should have our cluster ready so we
+will go ahead and then install Argo
+cdnet and it's very simple and easy and
+I prefer it a lot because it's not just
+easy it has a beautiful dashboard okay
+and instead of running any commands you
+can just look everything and you can
+debug so that as a user a QA guy or a
+Dev guy or an operation guy they can
+have this dashboard itself which is more
+than sufficient for them to do their
+day-to-day work okay so let me show you
+how that
+looks okay your mini cube is bringing up
+the control plane of your cluster so
+again so we have two things right
+control plane and data plane but now
+everything is in this single machine so
+now I go ahead and say Cube cutle Get
+notes well you see there's one machine
+so you can use this for your
+practicing all right so now let's
+install Aro
+CD again you need to run it on a
+separate Nam spaces so that's the basic
+any application that you're running
+always have a separate namespace so that
+you don't mix it with your micros
+service and what we we will do we will
+try
+to run this file against that namespace
+okay so it goes ahead and creates all
+the objects that it needs
+and now so basically it will create a
+service so that we can access the Argo
+CD application through web but the
+default port for this will be cluster IP
+so we need to change it to notep okay
+now you can use this command separately
+because if you try to edit the original
+file it's a huge file and if you mess up
+nothing will work down so first check
+you should have a new name space called
+Argo CD the first one and now if I just
+say Cube cutle get parts hyphen n Argo
+CD wait for this to come up and same
+time you can just say
+get
+service and you can see there is
+something called Argo CD server and the
+type is cluster IP so this is where I
+want you to run this
+command and now if you check only this
+will be marked as node port and it is
+going to run on a port called 31,0 881
+so now if you access
+31881 you will be able to access the
+Argo CD application meantime check
+whether all the parts has
+successfully run yeah everything is
+running so
+now just go back to your
+server yeah this is the mini Cube take
+the public
+DNS and if I just say
+3181 I'll just close what do you see
+okay go to
+Advanced and now you are able to access
+Aro CD dashboard
+so again the default username is admin
+but to get the password you need to run
+a command so go back
+to the page here I have the command so
+run this
+command so the password is this so copy
+paste all right so now you have your
+Argo CD up and running so now I need to
+tell the details so first you you need
+to tell where is your repo and for what
+application you have so you need to tell
+two things one your location of your
+repo which is gitlab and second thing is
+where is your repository in which your
+yaml file is there that is our CD
+pipeline repo both the things you have
+to tell so first go to
+settings and click on repositories and
+here click on connect and use https and
+give G so this is our git lab which is
+nothing but git so come here to your
+repo right take the
+URL and give the name of the project as
+default and your URL and give the
+username and
+password so this
+way in case if it's a private repo your
+Argo CD will connect to the gitlab and
+it will do a clone and directly apply it
+to your kubernetes cluster so that is
+where you don't need Jenkins or a user
+to do that and
+password all right and nothing else go
+ahead and connect and check whether it
+is working so you can see Argo CD is
+able to connect to this but we haven't
+told where is your actual repo we have
+just told only the location so this is
+when we need to create something called
+as an app so now why we call it as app
+because using this one repo I can deploy
+to my QA for my functional test I can
+connect to my uat or production cluster
+and I can run it for my uat or
+production so that is where you just
+have to create different different app
+which refers to different different
+location so that's where now go ahead
+and create a app okay and give a name so
+I'll call it as demo once again you can
+just leave the project as default and in
+Argo CD there are two ways to
+automatically run one is called as
+manual another one is automatic so
+automatic
+means whenever you modify the file
+automatically it will go and sync now
+this is okay for QA and uat but in
+production we should never do why
+because someone has to approve it that's
+the real time so in those options if you
+go with manual when you modify Argo CD
+will find out but it will wait for
+someone to approve so only when someone
+approves it will go to the cluster and
+change so that is where you control so
+depending on which cluster whether you
+want automatic or you want manual so
+I'll keep it as manual so that you can
+also verify and come down and this is
+when it is asking okay whenever I refer
+to this REM uh demo app where exactly is
+the code and that that's where you're
+going to tell now the source is in git
+and if you click you can see it's
+referring to the repo just we added and
+then it's asking us which version you
+want to take you want to take the latest
+it is okay and the next one it is asking
+is in this particular project do you
+have in a particular child folder in
+which you want to check because this is
+how it's not mandatory that it should
+scan everything so if you come back I
+want want this to scan only my
+kubernetes folder because this is where
+I have my file so all I have to tell is
+take this and tell the path is folder
+called kubernetes so under this repo on
+my main branch check for a folder called
+kubernetes okay then this is your
+desired State now what is your actual
+state is the destination so where is
+your cluster now that's where you can
+give the same cluster or you can also
+give another separate cluster also
+that's the flexibility of Argo CD but
+for for practicing let's take the same
+cluster so I will say refer to the local
+cluster and where you want to run so I
+will say run it in a default namespace
+so if you go to kubernetes you know
+whatever we run everything will be in a
+default namespace so that's what I'm
+trying to tell and come down and do you
+have any other options nothing just go
+ahead and create so now you see we are
+not at all going to Cluster all right
+but what is Argo CD doing it is now
+going to your yaml file and it is
+checking this and it is going to our
+cluster and it is trying to check that
+in the default Nam space do I now have a
+pod with the name
+called vesat and does it have two
+replicas generated from this image okay
+so if it is is not there and then come
+and see what is it saying it is missing
+and it is also out of sync out of sync
+means your actual cluster doesn't have
+that but your Source has it that means
+desired state is there actual state is
+not there so you need to sync so that is
+when since we have enabled as manual it
+is not automatically syncing so you need
+to go ahead and click on sync and before
+that the reason I called it as beautiful
+because you see it clearly understands
+from your yaml file this is your app now
+for that you have a deployment object
+and you have a service object it clearly
+identifies it so if I now just say
+sync
+okay it clearly says I'm going to create
+a endpoint which is nothing but a
+service IP and for your
+deployment what does the deployment
+object do the basics of kubernetes it
+will create a replica set and now that
+replica set you see has two parts okay
+ignore the error whatever it is saying
+not a problem but do you understand how
+it is working so instead of we going to
+the cluster or the machine and do the
+git clone or create the yaml file and
+then you modify the image name and say
+Cube cutle apply all you have to do is
+take your yaml file as the source keep
+it in the git repo somewhere and refer
+your Argo CD to it so that is how
+anytime when you modify your yaml file
+Argo CD will find out and automatically
+update well this is what we call it as
+our modern
+deployment but however we have not
+completed why because now if I want to
+deploy should I go to this particular
+repo and modify because if I want QA to
+deploy then QA have to come to this
+place they have to edit this file change
+the image well that is again not a good
+practice what if I want to deploy to
+production so that's when how do you
+control and how do you automate and
+that's exactly where we can think of a
+pipeline
+again okay so now let's think of having
+a pipeline for deployment which can Auto
+whatever that we did so we have a gitlab
+in which yaml file is stored and we also
+have a cuberes cluster in which Argo CD
+is continuously monitoring so all we
+will do now is we'll create a Jenkins
+chop and we will call it as a CD
+pipeline in which instead of you going
+to the gitlab you call the Jenkins job
+and give the name of the image what you
+want and what should your Jenkins job do
+jenin should connect to gitlab update
+whatever the image that you want and
+stop and as soon as the update happens
+what will Argo CD do Argo CD will simply
+take the latest code and then deploy so
+that is how your CD pipeline is going to
+be formed so once again we will use
+Jenkins but that's where now it's a
+second pipeline that we are going to
+create called as CD Pipeline and we will
+allow the update for our yaml files in
+gitlab through this pipeline all right
+and exactly this is where if you go back
+to the same
+project I I've already developed a
+Jenkins file okay so now if you edit
+this Jenkins file there is a simple
+stage in which we will first ask the
+user to pass what is the tag name that
+you want
+and update that tag in your RL file okay
+and go ahead and commit and push it so
+this way whenever you run this pipeline
+you need to give your tag so which image
+you want to deploy so that is how it
+could be a new image or it could be a
+old image so you have the control so as
+soon as you do that this pipeline will
+update the same repo with your image tag
+and as soon as this commit
+what will happen your Argo CD will
+immediately say that I see there is a
+change and it is out of sync and since
+we have given it as manual It'll ask us
+to sync if not if you have made it as
+automatic as soon as you commit there
+your Argo CD will go ahead and update
+okay so let's cross check and do that so
+what we will do now I need to create a
+job so let's go back to our genkins so
+you can already have a pipeline so let's
+create a second
+pipeline all right and I'll give the
+same name here called Spring
+boot not this your spring boot CD
+pipeline so new
+item and this is where your Jenkins file
+are helpful but before going there I
+just wanted to show one more thing you
+see there are two parameters that I'm
+passing one is the name of the tag and
+another one is a password why I'm giving
+it as a password Here is because well
+I'm trying in my repo but if you want to
+try in your repo give your password so
+that's the reason I've just added one
+more option so in real time you don't
+need a password because it'll be only
+one user but since you are also going to
+try change this to your password and
+look look here here I have given my URL
+so instead of that change this to your
+URL and what is the name of the repo
+where you have the code all right so
+these are the only changes that you
+should be doing for your try out so
+now come down it's a new job so I'll say
+spring boot CD Pipeline and once again
+it's a pipeline and again where is the
+code the code is is in the new repo so
+that's where we have two repo one's for
+source code of your application or
+micros service and we have a separate
+repo for our deployment that is your
+kubernets yaml file so come down
+here so
+pipeline
+andm get and this the name of the
+repo okay and branches Main
+and the name of the Jenkins file is same
+go ahead and
+save
+however well for the first time it might
+not show you the parameters so in
+Jenkins just do a dummy build once and
+then the next time you will see It'll be
+asking you to enter two parameters okay
+one is the password another one is the
+tag that is the image tag that you want
+to
+deploy so I'll just show you
+let's run it once I know it'll fail now
+because we haven't given the password
+properly and it has not taken so you
+refresh
+so now you see build with parameters
+okay I'll show you one test execution so
+now in
+your kubernetes yaml file what is the
+image tag I have given 50 which is the
+old one okay now let's test and check
+whether the pipeline is working and your
+Argo CD is also working that is your CD
+pipeline is working so now here I'll
+give my P
+password okay and let the image name be
+one so what this pipeline should do
+update this yaml file okay and however
+since we are using a gitops approach as
+soon as the yaml file gets updated you
+should see Argo CD should sync if you
+have given automatically if not it will
+say that your actual deployment is not
+sync it needs update okay so it says
+success Let's cross check now if I
+refresh what you should have
+here one so this is success and now
+let's come back to my app okay it
+usually take couple of seconds so I'll
+just refresh this I'm not doing anything
+okay so you can just do a
+refresh and since it is manual it says
+out of sync so you understand now right
+no user needs to run any Cube cutle or
+you don't have to connect to the cluster
+and you can cross check here by doing a
+diff so there is only one yaml file
+which is modified what is that your
+deployment yaml and in that what is the
+change scroll down so it's saying you
+had 50 now you are having one so this
+way whether if I a QA I don't care
+whether I want to deploy the first image
+last image or anything I want so use
+this pipeline which give the flexibility
+to deploy any image or redeploy
+correct clear so far and now again if I
+just go ahead and just say sync it'll go
+ahead and recreate and that's where what
+does your deployment object do it'll
+create a second replica set so now you
+see there are two replica sets and in
+that it's trying to create a new pod
+well it's failing not a problem why it
+is failing if you can see
+so you can this is where you can see you
+don't have to go to Cube cutle and run
+those commands I can see all the events
+that is happening so it says that there
+is what it says permission denied or do
+I have that image with tag one that's
+what is the question
+okay so this is the
+repo and I don't have a tag called one
+so that is why it is not downloading so
+let's not worry about it okay so so far
+clear so what we have achieved is a
+deployment pipeline which gives you the
+flexibility to deploy to a cluster any
+image that you want and you can deploy
+anytime all right so now let's combine
+everything and look at the end to end
+magic so now I have a build pipeline
+which is a CI pipeline which will get
+triggered anytime when a commit happens
+and now I have a deployment pipeline in
+which someone has to trigger and you
+will tell a image and that will deploy
+that but what if I want to combine both
+of them to form your CI CD so what is
+that so that means I have my deployment
+Pipeline and I also have my build
+pipeline
+so my build pipeline will get triggered
+which is the CI pipeline which will get
+triggered whenever a commit happens in
+your source code repo and all we have to
+do now
+is at the end add another stage wherein
+in Jenkins we have a concept called
+Downstream job one job can call another
+job so all we have to do now is in your
+build pipeline or your CI pipeline add a
+new stage and in that call your CD
+pipeline job and whatever the image that
+you're building that latest image tag
+you pass it so that way what will happen
+now when a developer commits a code a
+new build will be triggered and a new
+image will be generated and that new tag
+will be passed to the CD Pipeline and CD
+pipeline will update the yaml file and
+immediately it updates your Argo CD will
+go ahead and do the deployment and
+that's how your CI CD will be so it's
+not a single pipeline but two pipeline
+connected using a concept called gitops
+so now let's do this hole and this is
+exactly
+where I was referring to you that in
+your build pipeline I have one more yaml
+file sorry the Jenkins file okay so now
+since we are
+doing the cicd every build that I
+generate I want to create a new image
+and push that into registry and that
+should be the tag which we have to call
+and pass it to the downstream CD
+pipeline okay so go to the build
+Pipeline and now here you see the second
+yaml sorry again I keep missing it the
+Jenkins file so in this now this is
+where I'm going to pass my password from
+here because now understand who is going
+to call your
+CD your build pipeline in our case I
+want to pass a pass password there right
+so I will pass it through my CI so in
+reality you don't need it for practicing
+you pass so you pass your password to
+your CI Pipeline and CI pipeline will
+call CD Pipeline and pass the password
+as well as it will pass the build tag
+and your deployment will trigger okay
+and this is where you come down all I
+have done is when you are building a tag
+I just adding the name by saying the
+number so if you're going to do a build
+10 you will generate a Docker image of
+build 10 and you will push it and the
+same build 10 will be deployed into
+kubernetes and that's where is my last
+stage called trigger deployment and here
+I'm calling a build another job and this
+is where we have installed a plug-in
+called trigger with parameterized build
+so here I'm telling call a pipeline
+called Spring boot CD Pipeline and see
+what parameter I'm passing the password
+parameter and whatever the image name
+that you are taking so instead of
+V going here and directly calling this
+our pipeline will pass that's all so I
+don't want you to touch anything so just
+go back to your build
+Pipeline
+and come down
+so instead of giving this as Jenkins
+file now give the name of this file
+which is Jenkins file hyen cicd that's
+all so that's where I want you to
+practice and get handson all right done
+so now once again it might not show you
+the options so in case if it doesn't
+show you just do a dummy build once and
+it will try to trigger okay so let's
+just do a dummy build and cross
+check so you can see it's not showing
+but anyway so what we expect here is
+every time you do a build now build four
+so there should be a image tag called
+build four and that should be deployed
+to
+your where to your kubernetes so that's
+when it becomes CI and CD
+so you can see now let me stop it and
+show you so that the pipeline actually
+works properly
+okay we about it so
+now again this is for practicing right
+so if not you can go ahead and hardcode
+the password well I can show you that
+but then I have to hard code my password
+so instead of that I'm just trying to
+give it manually all right so now all I
+have to do is give the password and
+Trigger the pipeline assume the same
+thing will get triggered when a commit
+happens that's all right so here
+all right so now that's your CI pipeline
+getting
+triggered okay so it'll go through all
+the stages and once it is done now what
+is the build number that we see here
+build five right so build four was the
+previous one so now it should see build
+five so if everything is good there
+should be a new Docker image called
+build five should be generated and this
+yam file should be updated with FES that
+is when it is a cicd so let's cross
+check it's
+running while you
+can check for the
+stages okay so build is
+done code coverage is done sea is done
+and then it's going ahead with
+sast once that is done it goes
+to Quality Gates now I forgot to show
+you in Sona Cube I'll show you and then
+it's going with build image okay and
+what should be the image it should be
+pushing build five all right and once it
+is built we scan and we do a smoke test
+well that has been built cross check
+here okay let's go to my dockerhub
+account again
+you see build five all right and come
+back it's doing smoke test in meantime
+I'll also show you in sonar Cube which I
+forgot so now you go to sonar Cube you
+have a project called vatch where the
+quality Gates has run but look at here
+so it's showing you all the results it's
+showing you the code coverage it it's
+showing you if there is any third party
+dependency that is SCA as well as it is
+also showing you the sast results okay
+so that's how only when you install
+those dependency check plug-in you'll be
+able to see everything okay so this is
+one of the project where you have all of
+them and you can go through and cross
+check what's that and how it is working
+okay so since everything was there our
+quality standard was also within what we
+have given so the code successfully
+passed so that is how if any one of
+these is not matching your profile in
+the standards your quality gate will
+fail okay so now just to come back
+here it's still running the smoke test
+so once the smoke test is run it will go
+ahead and Trigger your CD pipeline right
+so again to show you that so this is
+only two jobs the execution now once
+this done you should see the third
+execution which is called from the
+parent which is your build
+pipeline okay it says
+error okay let's check
+why not a problem
+have I given everything proper the name
+is CD
+pipeline okay name is
+good come
+down something is wrong
+okay it says no such property
+called build
+number okay let me quickly check where I
+have given this as build
+number okay here it's not tiing it
+up h
+okay let's try one small change and
+check whether it
+works
+[Music]
+so it's
+taking everywhere
+properly all right so whereas here
+tag it's not taking
+up what could be the
+reason
+okay so let's say with quotes and let me
+try if this
+works let's trigger it
+again
+e for
+okay guess why the six is running
+because we did a commit there right as
+soon as we did a commit the web Hook is
+triggering a job again this will fail so
+we'll stop this
+okay let's see this is going
+through so for some reason it's not
+recognizing but let's check
+why so I believe it's because of quotes
+that Let's cross check
+sast okay build the
+image and this time it should build and
+push image 7 because our build number is
+seven all
+right
+ah okay now again there's a problem so
+looks like
+earlier it says your smoke run okay
+there's a container which is already
+running the stage skipped in between my
+bad so let's quickly go here and uh
+build server and delete that
+container Docker
+PS
+oh sorry which machine did we connect
+this is build server
+right then why is it coming
+here okay
+Docker
+now it's coming to mini
+Cube did we install mini Cube my bad
+any chance did I do it on okay let's
+check that's where we name the
+service Docker images okay this is the
+proper one so there is already there so
+let's Top
+This
+RM
+Force okay this should delete again
+unfortunately we have to run it from the
+beginning
+for
+build
+[Music]
+eight anyway you should be
+seeing now 7 is already
+pushed okay you see 56
+7 let's wait
+okay build image is going through
+okay hope it won't fail why is it
+failing
+again my my
+my
+well Ah that's because it
+didn't h my
+bad okay I'm sorry again this one last
+try let's go ahead and do
+this but anyway it's a good thing you
+see every time a build you understand
+that a new tag is getting generated and
+obviously that's what we want to
+deploy at least you pipeline is
+working I should say
+please complete this time
+okay sast
+quickly there's nothing running
+right
+okay okay smokes test
+hope one more stage will go
+through well that's what makes your
+devops interesting is you need to be
+good at debugging and you need to kind
+of make sure everything is intact so
+it's not like you write the pipeline and
+leave it everything will work fine again
+you have to write your Automation in
+such a way you think about all the
+scenarios well this is what you do in a
+day-to-day you modify something don't
+expect it'll immediately work so that's
+where many times people think oh it's
+just that you sit and do one time and
+nothing else will be there like even
+anyone right you just
+modify you do some small change and you
+have to make sure you test it thoroughly
+so that's where on a day-to-day there's
+be a lot of operational work that you
+have to go
+through okay so smoke test
+is
+running I just want the last stage to
+get triggered
+okay it
+triggered let's quickly cross check
+there is that CD part triggered awesome
+now we'll just wait for this to complete
+so now if you understand
+your CI pipeline triggered what is the
+build number build number nine and it
+called CD job and we passed two
+parameters the password and the tag
+which is build
+nine and you should see it completed so
+go to your kubernetes yaml and you
+refresh what is that you should see
+now build nine and now since it has
+updated go back to your Argo CD and
+again if you have patience wait for a
+few more seconds or just refresh you
+should see it's saying out of sync which
+means it needs to do deploy and that's
+where if you have made it as automatic
+option it will deploy but just to cross
+check what is the change earlier it was
+nine now it is 10 okay
+so if we go ahead and sync it up
+so it will again create a new replica
+set okay
+and this is the
+Pod
+okay no why is
+it which one is the new one
+few seconds
+above
+okay okay so it says it doesn't know the
+repository well let's not worry but just
+to solve time being I'll just do a
+Docker login there it should
+work okay but anyway what we wanted is
+to see how Argo CD takes it up
+so let's
+connect yeah because it's just a small
+project I haven't given the credentials
+here but anyway it should go through
+so talker
+login well it should go ahead and do
+that okay so when the next deployment
+happens we should see it should be
+trying to recreate the parts all right
+so clear so far so what is your actual
+cicd in real time so this is how you're
+not going to have a single pipeline
+because whether you are attending
+interview or even you are trying to set
+up your own project or you are going to
+a client interview so try to understand
+on the
+modern tacops method your entire cicd is
+divided into two pipelines one is the
+build which you trigger on a need basis
+and you have a separate deployment
+Pipeline and use the gitops approach in
+which it gives you the ability to build
+and deploy so that you can just connect
+these two pipelines as Downstream and at
+the same time having a separate gitops
+approach of the pipeline gives you the
+ability to securely deploy and you can
+also redeploy and now I can just set up
+the same way another two apps so that I
+can choose to deploy to QA or to
+production okay so again as you see this
+is is one of the sample project but
+again uh for those who are looking out
+for a career change or looking out for a
+better career or a better salary in
+terms of your devops positions or Cloud
+positions or SRE positions that's when
+we highly recommend to go through our
+devops ninjas program and in fact
+whatever you have seen now is one of the
+project that we actually doing it live
+in our devops in ninjas program okay but
+apart from that for those who are
+beginners please subscribe to the
+channel and make sure you go through all
+the prerequisite videos like Linux we
+have git and in fact we have things like
+Docker and gitops so do that get
+Hands-On and understand the subject and
+make sure you subscribe to the channel
+so that we have any future webinars will
+be alerted to you

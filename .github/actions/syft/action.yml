@@ -1,0 +1,58 @@
+name: "AISec — Syft SBOM Generation"
+description: "Delegates to pipelines/github-actions/syft/action.yml — source of truth."
+
+inputs:
+  target-dir:
+    required: false
+    default: "."
+  cyclonedx-output:
+    required: false
+    default: "sbom.cyclonedx.json"
+  spdx-output:
+    required: false
+    default: "sbom.spdx.json"
+  scope:
+    required: false
+    default: "all-layers"
+
+outputs:
+  cyclonedx-file:
+    value: ${{ inputs.cyclonedx-output }}
+  spdx-file:
+    value: ${{ inputs.spdx-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Syft
+      shell: bash
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+          | sh -s -- -b /usr/local/bin v1.4.1
+
+    - name: Generate CycloneDX SBOM
+      shell: bash
+      run: |
+        syft "${{ inputs.target-dir }}" \
+          -o cyclonedx-json="${{ inputs.cyclonedx-output }}" \
+          --scope "${{ inputs.scope }}"
+
+    - name: Generate SPDX SBOM
+      shell: bash
+      run: |
+        syft "${{ inputs.target-dir }}" \
+          -o spdx-json="${{ inputs.spdx-output }}" \
+          --scope "${{ inputs.scope }}"
+
+    - name: Component count
+      shell: bash
+      run: |
+        COUNT=$(python3 -c "
+        import json
+        try:
+            data = json.load(open('${{ inputs.cyclonedx-output }}'))
+            print(len(data.get('components', [])))
+        except Exception:
+            print(0)
+        ")
+        echo "SBOM components: $COUNT"

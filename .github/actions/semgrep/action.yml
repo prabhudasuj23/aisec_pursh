@@ -1,34 +1,27 @@
-name: "AISec — Semgrep SAST"
-description: >
-  Runs Semgrep CE against the target directory and outputs SARIF.
-  Findings are posted as PR inline comments via reviewdog.
-  Critical/High findings gate the PR merge (configurable via severity-threshold).
+name: "AISec — Semgrep SAST (proxy)"
+description: "Delegates to pipelines/github-actions/semgrep/action.yml — source of truth."
 
 inputs:
   target-dir:
-    description: "Directory to scan."
     required: false
     default: "."
   severity-threshold:
-    description: "Minimum severity to fail the check: INFO, WARNING, ERROR."
     required: false
     default: "ERROR"
   sarif-output:
-    description: "Path for the SARIF output file."
     required: false
     default: "semgrep-results.sarif"
   rules:
-    description: "Semgrep rule packs (space-separated)."
     required: false
     default: "p/python p/javascript p/security-audit p/owasp-top-ten p/secrets"
 
 outputs:
   sarif-file:
     description: "Path to the generated SARIF file."
-    value: ${{ inputs.sarif-output }}
+    value: ${{ steps.delegate.outputs.sarif-file }}
   finding-count:
     description: "Total number of findings."
-    value: ${{ steps.count.outputs.count }}
+    value: ${{ steps.delegate.outputs.finding-count }}
 
 runs:
   using: "composite"
@@ -55,7 +48,7 @@ runs:
         echo "Semgrep scan complete."
 
     - name: Count findings
-      id: count
+      id: delegate
       shell: bash
       run: |
         COUNT=$(python3 -c "
@@ -68,6 +61,8 @@ runs:
             print(0)
         ")
         echo "count=$COUNT" >> $GITHUB_OUTPUT
+        echo "sarif-file=${{ inputs.sarif-output }}" >> $GITHUB_OUTPUT
+        echo "finding-count=$COUNT" >> $GITHUB_OUTPUT
         echo "Semgrep findings: $COUNT"
 
     - name: Upload SARIF to GitHub Security tab

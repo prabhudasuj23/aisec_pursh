@@ -1,0 +1,76 @@
+name: SBOM — Syft + Grype
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1"   # Weekly Monday 05:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sbom-pursh:
+    name: SBOM + Grype — Pursh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Pursh SBOM
+        uses: ./.github/actions/syft
+        with:
+          target-dir: pursh/
+          cyclonedx-output: pursh.cyclonedx.json
+          spdx-output: pursh.spdx.json
+
+      - name: Grype vuln scan on Pursh SBOM
+        uses: ./.github/actions/grype
+        with:
+          target: pursh.cyclonedx.json
+          sarif-output: grype-pursh.sarif
+          severity: high
+          fail-build: "false"
+
+      - name: Upload SBOMs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pursh-sboms
+          path: |
+            pursh.cyclonedx.json
+            pursh.spdx.json
+            grype-pursh.sarif
+          retention-days: 90
+
+  sbom-aisec:
+    name: SBOM + Grype — AISec (dogfooding)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate AISec SBOM
+        uses: ./.github/actions/syft
+        with:
+          target-dir: aisec/
+          cyclonedx-output: aisec.cyclonedx.json
+          spdx-output: aisec.spdx.json
+
+      - name: Grype vuln scan on AISec SBOM
+        uses: ./.github/actions/grype
+        with:
+          target: aisec.cyclonedx.json
+          sarif-output: grype-aisec.sarif
+          severity: high
+          fail-build: "false"
+
+      - name: Upload SBOMs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aisec-sboms
+          path: |
+            aisec.cyclonedx.json
+            aisec.spdx.json
+            grype-aisec.sarif
+          retention-days: 90

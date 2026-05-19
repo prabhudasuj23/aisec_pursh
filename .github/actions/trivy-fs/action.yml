@@ -1,0 +1,41 @@
+name: "AISec — Trivy SCA (filesystem)"
+description: "Delegates to pipelines/github-actions/trivy-fs/action.yml — source of truth."
+
+inputs:
+  target-dir:
+    required: false
+    default: "."
+  severity:
+    required: false
+    default: "CRITICAL,HIGH,MEDIUM"
+  sarif-output:
+    required: false
+    default: "trivy-fs-results.sarif"
+  exit-code:
+    required: false
+    default: "0"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Trivy filesystem scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: "fs"
+        scan-ref: ${{ inputs.target-dir }}
+        format: "sarif"
+        output: ${{ inputs.sarif-output }}
+        severity: ${{ inputs.severity }}
+        exit-code: ${{ inputs.exit-code }}
+        ignore-unfixed: true
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: trivy-fs
+      continue-on-error: true

@@ -1,0 +1,48 @@
+name: "AISec — Trivy SCA (filesystem)"
+description: >
+  Runs Trivy against the repository filesystem to find vulnerable dependencies.
+  SCA (Software Composition Analysis) — maps CVEs to OWASP A06:2021.
+  Output: SARIF uploaded to GitHub Security tab.
+
+inputs:
+  target-dir:
+    description: "Directory to scan."
+    required: false
+    default: "."
+  severity:
+    description: "Comma-separated severities to report: CRITICAL,HIGH,MEDIUM,LOW"
+    required: false
+    default: "CRITICAL,HIGH,MEDIUM"
+  sarif-output:
+    description: "Path for SARIF output."
+    required: false
+    default: "trivy-fs-results.sarif"
+  exit-code:
+    description: "Exit code when vulnerabilities found (0=pass, 1=fail)."
+    required: false
+    default: "0"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Trivy filesystem scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: "fs"
+        scan-ref: ${{ inputs.target-dir }}
+        format: "sarif"
+        output: ${{ inputs.sarif-output }}
+        severity: ${{ inputs.severity }}
+        exit-code: ${{ inputs.exit-code }}
+        ignore-unfixed: true
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: trivy-fs
+      continue-on-error: true

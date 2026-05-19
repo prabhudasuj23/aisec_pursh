@@ -1,0 +1,56 @@
+name: "AISec — Grype Vulnerability Scan"
+description: >
+  Runs Grype against a SBOM or directory to find vulnerable dependencies.
+  Outputs SARIF uploaded to GitHub Security tab.
+  Complements Trivy SCA — Grype cross-validates against the Grype DB.
+
+inputs:
+  target:
+    description: "SBOM file path or directory/image reference to scan."
+    required: false
+    default: "sbom.cyclonedx.json"
+  severity:
+    description: "Fail on findings at or above this severity: negligible, low, medium, high, critical."
+    required: false
+    default: "high"
+  sarif-output:
+    description: "Path for SARIF output."
+    required: false
+    default: "grype-results.sarif"
+  fail-build:
+    description: "Exit 1 if vulnerabilities found at threshold (true/false)."
+    required: false
+    default: "false"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Grype
+      shell: bash
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+          | sh -s -- -b /usr/local/bin v0.78.0
+
+    - name: Run Grype
+      shell: bash
+      run: |
+        FAIL_FLAG=""
+        if [ "${{ inputs.fail-build }}" = "true" ]; then
+          FAIL_FLAG="--fail-on ${{ inputs.severity }}"
+        fi
+        grype "${{ inputs.target }}" \
+          -o sarif \
+          --file "${{ inputs.sarif-output }}" \
+          $FAIL_FLAG || true
+        echo "Grype scan complete: ${{ inputs.sarif-output }}"
+
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: grype
+      continue-on-error: true

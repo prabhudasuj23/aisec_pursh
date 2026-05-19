@@ -1,0 +1,130 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Checkov",
+          "version": "3.2.0",
+          "informationUri": "https://www.checkov.io",
+          "rules": [
+            {
+              "id": "CKV_AWS_18",
+              "name": "Ensure the S3 bucket has access logging enabled",
+              "shortDescription": {
+                "text": "S3 bucket does not have access logging enabled."
+              },
+              "fullDescription": {
+                "text": "S3 bucket access logs provide a record of all requests made to the bucket. Without logging, unauthorized or anomalous access cannot be detected or investigated."
+              },
+              "defaultConfiguration": { "level": "warning" },
+              "help": {
+                "text": "Add a logging block to your aws_s3_bucket resource: logging { target_bucket = aws_s3_bucket.log_bucket.id }"
+              },
+              "properties": {
+                "tags": ["CWE-778", "aws", "s3", "logging"],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "CKV_AWS_53",
+              "name": "Ensure S3 bucket has block public ACLS enabled",
+              "shortDescription": {
+                "text": "S3 bucket does not block public ACLs."
+              },
+              "fullDescription": {
+                "text": "S3 buckets should block public ACLs to prevent accidental or intentional exposure of sensitive objects. Without this setting, any object can be made publicly accessible via an ACL."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Add aws_s3_bucket_public_access_block with block_public_acls = true to your Terraform configuration."
+              },
+              "properties": {
+                "tags": ["CWE-16", "aws", "s3", "misconfiguration"],
+                "security-severity": "7.5"
+              }
+            },
+            {
+              "id": "CKV_AWS_111",
+              "name": "Ensure IAM policy does not allow write access without constraints",
+              "shortDescription": {
+                "text": "IAM policy grants broad write access."
+              },
+              "fullDescription": {
+                "text": "IAM policies should follow the principle of least privilege. Policies with '*' actions or overly broad resource ARNs grant more access than needed."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Scope the IAM policy to specific actions and resource ARNs. Avoid using '*' as the Resource value."
+              },
+              "properties": {
+                "tags": ["CWE-284", "aws", "iam", "access-control"],
+                "security-severity": "8.0"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CKV_AWS_18",
+          "level": "warning",
+          "message": {
+            "text": "S3 bucket 'pursh-phi-documents' does not have access logging enabled."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "infra/terraform/pursh/s3.tf" },
+                "region": {
+                  "startLine": 1,
+                  "endLine": 15,
+                  "snippet": { "text": "resource \"aws_s3_bucket\" \"pursh_phi_documents\" {\n  bucket = \"pursh-phi-documents\"\n}" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AWS_53",
+          "level": "error",
+          "message": {
+            "text": "S3 bucket 'pursh-phi-documents' does not block public ACLs."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "infra/terraform/pursh/s3.tf" },
+                "region": {
+                  "startLine": 1,
+                  "endLine": 15,
+                  "snippet": { "text": "resource \"aws_s3_bucket\" \"pursh_phi_documents\" {\n  bucket = \"pursh-phi-documents\"\n}" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AWS_111",
+          "level": "error",
+          "message": {
+            "text": "IAM policy 'pursh-backend-policy' allows s3:* on resource '*'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "infra/terraform/pursh/iam.tf" },
+                "region": {
+                  "startLine": 12,
+                  "endLine": 25,
+                  "snippet": { "text": "  statement {\n    actions   = [\"s3:*\"]\n    resources = [\"*\"]\n  }" }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
