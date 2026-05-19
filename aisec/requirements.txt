@@ -6,7 +6,7 @@ starlette>=0.37
 # ── Settings & validation ─────────────────────────────────────────────────────
 pydantic>=2.7
 pydantic-settings>=2.2
-email-validator>=2.1
+email-validator>=2.3.0
 
 # ── JWT / OIDC ────────────────────────────────────────────────────────────────
 python-jose[cryptography]>=3.3
