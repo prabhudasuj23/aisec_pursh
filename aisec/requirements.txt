@@ -4,7 +4,7 @@ uvicorn[standard]>=0.29
 starlette>=0.37
 
 # ── Settings & validation ─────────────────────────────────────────────────────
-pydantic>=2.7
+pydantic>=2.13.4
 pydantic-settings>=2.2
 email-validator>=2.1
 
