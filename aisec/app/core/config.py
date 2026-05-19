@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed CORS origins
     cors_origins: str = "http://localhost:3000"
 
+    # ── Database ──────────────────────────────────────────────────────────────
+    # asyncpg DSN: postgresql+asyncpg://user:pass@host/db
+    database_url: str = "postgresql+asyncpg://aisec:aisec@localhost:5432/aisec"
+
     @property
     def supabase_jwks_url(self) -> str:
         return f"{self.supabase_url}/auth/v1/.well-known/jwks.json"

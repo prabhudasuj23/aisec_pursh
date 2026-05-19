@@ -1,0 +1,95 @@
+name: CI — AISec + Pursh
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  id-token: write   # GitHub OIDC → AWS
+
+jobs:
+  # ── Python tests (AISec + Pursh backend) ────────────────────────────────────
+  test-python:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install AISec dependencies
+        run: pip install -r aisec/requirements.txt
+
+      - name: Run AISec tests
+        run: |
+          cd aisec
+          python -m pytest app/tests/ -v --tb=short
+        env:
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_ANON_KEY: placeholder
+          SUPABASE_JWT_SECRET: placeholder-32-chars-minimum-here
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+
+  # ── Terraform validate ───────────────────────────────────────────────────────
+  terraform-validate:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Terraform init + validate (aisec)
+        run: |
+          cd infra/terraform/aisec
+          terraform init -backend=false
+          terraform validate
+
+      - name: Terraform init + validate (pursh)
+        run: |
+          cd infra/terraform/pursh
+          terraform init -backend=false
+          terraform validate
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive infra/
+
+  # ── Secret scanning (Gitleaks) ───────────────────────────────────────────────
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Semgrep SAST (Phase 2 — stub runs but doesn't gate yet) ─────────────────
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/python
+            p/security-audit
+            p/owasp-top-ten
+        env:
+          SEMGREP_TIMEOUT: 300
+        continue-on-error: true   # Phase 2: findings visible but not gating yet

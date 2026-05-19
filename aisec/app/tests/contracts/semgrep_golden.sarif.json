@@ -1,0 +1,81 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Semgrep",
+          "version": "1.70.0",
+          "rules": [
+            {
+              "id": "python.sqlalchemy.security.audit.raw-query.raw-query",
+              "name": "SQLAlchemyRawQuery",
+              "shortDescription": {
+                "text": "Detected raw SQL query. Use parameterized queries to prevent SQL injection."
+              },
+              "fullDescription": {
+                "text": "Avoid string formatting or concatenation in SQL queries. Use SQLAlchemy's parameterized query interface."
+              },
+              "defaultConfiguration": { "level": "error" },
+              "help": {
+                "text": "Replace f-string or .format() SQL with :param syntax and pass params as a dict."
+              },
+              "properties": {
+                "cwe": ["CWE-89: SQL Injection"],
+                "owasp": ["A03:2021 - Injection"]
+              }
+            },
+            {
+              "id": "python.flask.security.xss.audit.direct-use-of-jinja2",
+              "name": "DirectJinja2Use",
+              "shortDescription": {
+                "text": "Detected use of Jinja2 with autoescape disabled — XSS risk."
+              },
+              "defaultConfiguration": { "level": "warning" },
+              "properties": {
+                "cwe": ["CWE-79: Cross-site Scripting"]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "python.sqlalchemy.security.audit.raw-query.raw-query",
+          "level": "error",
+          "message": {
+            "text": "Raw SQL query detected: `session.execute(f'SELECT * FROM users WHERE id = {user_id}')`"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/api/patients.py" },
+                "region": {
+                  "startLine": 42,
+                  "endLine": 42,
+                  "snippet": { "text": "    session.execute(f'SELECT * FROM users WHERE id = {user_id}')" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "python.flask.security.xss.audit.direct-use-of-jinja2",
+          "level": "warning",
+          "message": {
+            "text": "Jinja2 Environment created without autoescape=True"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "pursh/backend/api/templates.py" },
+                "region": { "startLine": 8, "endLine": 8 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
