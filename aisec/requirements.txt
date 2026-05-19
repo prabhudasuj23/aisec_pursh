@@ -10,7 +10,7 @@ email-validator>=2.1
 
 # ── JWT / OIDC ────────────────────────────────────────────────────────────────
 python-jose[cryptography]>=3.3
-cryptography>=42
+cryptography>=48.0.0
 
 # ── Database ─────────────────────────────────────────────────────────────────
 sqlalchemy[asyncio]>=2.0
