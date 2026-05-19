@@ -9,7 +9,7 @@ pydantic-settings>=2.2
 email-validator>=2.1
 
 # ── JWT / OIDC ────────────────────────────────────────────────────────────────
-python-jose[cryptography]>=3.3
+python-jose[cryptography]>=3.5.0
 cryptography>=42
 
 # ── Database ─────────────────────────────────────────────────────────────────
