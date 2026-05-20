@@ -1,28 +1,200 @@
 pipeline {
-  agent any
-  parameters {
-    string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Image tag to deploy')
-    string(name: 'REPO_URL', defaultValue: '', description: 'Git repo with k8s manifests')
-  }
+  agent { label 'build-agent' }
+
   environment {
-    GIT_CRED = 'gitlab_cred'
+    SONAR_URL        = 'http://3.14.146.228:9000'
+    SONAR_PROJECT    = 'aisec_pursh'
+    GHCR_IMAGE_AISEC = "ghcr.io/prabhudasuj23/aisec"
+    GHCR_IMAGE_PURSH = "ghcr.io/prabhudasuj23/pursh-backend"
+    GITHUB_USER      = 'prabhudasuj23'
   }
+
   stages {
-    stage('Checkout manifests') {
+
+    // ── Stage 1: Checkout ──────────────────────────────────────────────────
+    stage('Checkout') {
       steps {
-        checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: params.REPO_URL, credentialsId: env.GIT_CRED]]])
+        checkout scm
+        echo "Branch: ${env.GIT_BRANCH}  Commit: ${env.GIT_COMMIT[0..7]}"
       }
     }
 
-    stage('Update image tag') {
+    // ── Stage 2: Unit Tests + Coverage ─────────────────────────────────────
+    stage('Tests + Coverage') {
       steps {
-        sh "sed -i 's|image: .*|image: docker.io/your-username/demo-app:${IMAGE_TAG}|' kubernetes/deployment.yaml"
-        sh 'git config user.email "jenkins@example.com"'
-        sh 'git config user.name "Jenkins CI"'
-        sh 'git add kubernetes/deployment.yaml'
-        sh 'git commit -m "ci: update image tag to ${IMAGE_TAG} [ci skip]" || true'
-        sh 'git push origin main'
+        sh '''
+          cd aisec
+          pip3 install -r requirements.txt --quiet
+          python3 -m pytest app/tests/ -v --tb=short \
+            --cov=app --cov-report=xml:coverage.xml \
+            --cov-fail-under=80
+        '''
       }
+      post {
+        always {
+          archiveArtifacts artifacts: 'aisec/coverage.xml', allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Stage 3: SAST — Semgrep ────────────────────────────────────────────
+    stage('SAST — Semgrep') {
+      steps {
+        sh '''
+          semgrep \
+            --config p/python \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --sarif --output semgrep.sarif \
+            --timeout 300 \
+            pursh/ aisec/ || EXIT=$?
+          if [ "${EXIT:-0}" -gt 1 ]; then exit "${EXIT}"; fi
+          echo "Semgrep complete — findings in semgrep.sarif"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'semgrep.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    // ── Stage 4: SCA — Trivy filesystem ───────────────────────────────────
+    stage('SCA — Trivy FS') {
+      steps {
+        sh '''
+          trivy fs . \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-fs.sarif \
+            --exit-code 1 \
+            --ignore-unfixed || true
+          echo "Trivy FS scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'trivy-fs.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    // ── Stage 5: Secrets — Gitleaks ───────────────────────────────────────
+    stage('Secrets — Gitleaks') {
+      steps {
+        sh '''
+          docker run --rm \
+            -v "$(pwd):/repo" \
+            -v "$(pwd)/scanners/gitleaks/.gitleaks.toml:/config/.gitleaks.toml" \
+            zricethezav/gitleaks:latest \
+            detect \
+            --source=/repo \
+            --config=/config/.gitleaks.toml \
+            --report-format=sarif \
+            --report-path=/repo/gitleaks.sarif \
+            --no-git || EXIT=$?
+          if [ "${EXIT:-0}" -gt 1 ]; then exit "${EXIT}"; fi
+          echo "Gitleaks scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'gitleaks.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    // ── Stage 6: SonarQube SAST ────────────────────────────────────────────
+    stage('SonarQube Analysis') {
+      steps {
+        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+          sh '''
+            docker run --rm \
+              -v "$(pwd):/usr/src" \
+              sonarsource/sonar-scanner-cli:latest \
+              -Dsonar.projectKey=${SONAR_PROJECT} \
+              -Dsonar.sources=aisec/app,pursh/backend \
+              -Dsonar.host.url=${SONAR_URL} \
+              -Dsonar.token=${SONAR_TOKEN} \
+              -Dsonar.python.coverage.reportPaths=aisec/coverage.xml
+          '''
+        }
+      }
+    }
+
+    // ── Stage 7: Build Docker Images ──────────────────────────────────────
+    stage('Build Images') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+            SHORT_SHA=$(git rev-parse --short HEAD)
+
+            docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} -f aisec/Dockerfile aisec/
+            docker build -t ${GHCR_IMAGE_PURSH}:${SHORT_SHA} -f pursh/backend/Dockerfile pursh/backend/
+
+            docker tag ${GHCR_IMAGE_AISEC}:${SHORT_SHA} ${GHCR_IMAGE_AISEC}:latest
+            docker tag ${GHCR_IMAGE_PURSH}:${SHORT_SHA} ${GHCR_IMAGE_PURSH}:latest
+          '''
+        }
+      }
+    }
+
+    // ── Stage 8: Trivy Image Scan ─────────────────────────────────────────
+    stage('Image Scan — Trivy') {
+      steps {
+        sh '''
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          trivy image \
+            --severity CRITICAL \
+            --format sarif \
+            --output trivy-aisec-image.sarif \
+            --exit-code 1 \
+            --ignore-unfixed \
+            ${GHCR_IMAGE_AISEC}:${SHORT_SHA} || true
+          echo "Image scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'trivy-*-image.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    // ── Stage 9: Smoke Test ────────────────────────────────────────────────
+    stage('Smoke Test') {
+      steps {
+        sh '''
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          chmod +x demo/smoke-test.sh
+          ./demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000
+        '''
+      }
+    }
+
+    // ── Stage 10: Push to GHCR (main branch only) ─────────────────────────
+    stage('Push to GHCR') {
+      when { branch 'main' }
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            docker push ${GHCR_IMAGE_AISEC}:${SHORT_SHA}
+            docker push ${GHCR_IMAGE_AISEC}:latest
+            docker push ${GHCR_IMAGE_PURSH}:${SHORT_SHA}
+            docker push ${GHCR_IMAGE_PURSH}:latest
+            echo "Pushed to GHCR: ${SHORT_SHA}"
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo "Pipeline complete — status: ${currentBuild.currentResult}"
+      cleanWs()
+    }
+    success {
+      echo "All gates passed. Images pushed to GHCR."
+    }
+    failure {
+      echo "Pipeline FAILED. Check archived SARIFs for findings."
     }
   }
 }
