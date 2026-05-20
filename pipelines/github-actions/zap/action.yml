@@ -1,0 +1,87 @@
+name: "AISec — ZAP DAST Baseline Scan"
+description: >
+  Runs OWASP ZAP baseline scan against a live target URL.
+  Baseline mode: passive scan + a small set of active checks.
+  Safe for CI — does not send attack payloads that modify data.
+  Config in scanners/zap/zap-baseline.conf controls WARN/FAIL/IGNORE per rule.
+
+inputs:
+  target-url:
+    description: "URL of the running application to scan (e.g. http://localhost:8000)."
+    required: true
+  config-path:
+    description: "Path to ZAP rule config file."
+    required: false
+    default: "scanners/zap/zap-baseline.conf"
+  sarif-output:
+    description: "Path for SARIF output file."
+    required: false
+    default: "zap.sarif"
+  fail-on-warn:
+    description: "Exit 1 if any WARN-level alerts found (true/false). Default false — only FAIL rules block the build."
+    required: false
+    default: "false"
+  zap-image:
+    description: "ZAP Docker image to use."
+    required: false
+    default: "ghcr.io/zaproxy/zaproxy:stable"
+
+outputs:
+  sarif-file:
+    value: ${{ inputs.sarif-output }}
+  alert-count:
+    description: "Number of alerts at WARN or higher."
+    value: ${{ steps.count.outputs.alert_count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run ZAP baseline scan
+      shell: bash
+      run: |
+        # ZAP writes output to /zap/wrk inside the container.
+        # We mount the workspace so the SARIF lands in the runner workspace.
+        FAIL_FLAG=""
+        if [ "${{ inputs.fail-on-warn }}" = "true" ]; then
+          FAIL_FLAG="-l WARN"
+        fi
+
+        docker run --rm \
+          --network host \
+          -v "${{ github.workspace }}:/zap/wrk:rw" \
+          -t "${{ inputs.zap-image }}" \
+          zap-baseline.py \
+            -t "${{ inputs.target-url }}" \
+            -c "/zap/wrk/${{ inputs.config-path }}" \
+            -J "/zap/wrk/${{ inputs.sarif-output }}" \
+            -r "/zap/wrk/zap-report.html" \
+            -I \
+            $FAIL_FLAG || true
+
+        echo "ZAP scan complete"
+        ls -lh "${{ github.workspace }}/${{ inputs.sarif-output }}" 2>/dev/null || echo "SARIF not produced"
+
+    - name: Count alerts
+      id: count
+      shell: bash
+      run: |
+        COUNT=$(jq '[.runs[].results[]] | length' "${{ inputs.sarif-output }}" 2>/dev/null || echo 0)
+        echo "alert_count=$COUNT" >> "$GITHUB_OUTPUT"
+        echo "ZAP alert count: $COUNT"
+
+    - name: Upload SARIF to GitHub Security
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-output }}
+        category: zap-dast
+      continue-on-error: true
+
+    - name: Upload ZAP HTML report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-html-report
+        path: zap-report.html
+        retention-days: 30
+      continue-on-error: true

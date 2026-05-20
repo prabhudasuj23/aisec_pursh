@@ -193,8 +193,60 @@ pipeline {
         sh '''
           SHORT_SHA=$(git rev-parse --short HEAD)
           chmod +x demo/smoke-test.sh
-          ./demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000
+          # --keep leaves the container running so the DAST stage can scan it
+          ./demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000 --keep
         '''
+      }
+    }
+
+    // ── DAST — ZAP Baseline ───────────────────────────────────────────────────
+    // Scans the live AISec container left running by the Smoke Test stage.
+    // Baseline mode: passive scan + a safe subset of active checks.
+    // Does NOT modify data. Safe for any CI environment.
+    //
+    // Rule behaviour (scanners/zap/zap-baseline.conf):
+    //   FAIL  = HIGH/CRITICAL injection findings → build fails
+    //   WARN  = low-risk headers missing → reported, build continues
+    //   IGNORE= known FP or N/A for a JSON API → suppressed
+    //
+    // Developer path when DAST gate fails:
+    //   Fix the vulnerability, OR add a WARN/IGNORE rule with justification
+    //   to scanners/zap/zap-baseline.conf and open a PR for security review.
+    stage('DAST — ZAP Baseline') {
+      steps {
+        sh '''
+          TARGET_PORT=8000
+          ZAP_IMAGE="ghcr.io/zaproxy/zaproxy:stable"
+
+          echo "DAST: scanning http://localhost:${TARGET_PORT} with ZAP baseline..."
+
+          docker run --rm \
+            --network host \
+            -v "$(pwd):/zap/wrk:rw" \
+            -t "$ZAP_IMAGE" \
+            zap-baseline.py \
+              -t "http://localhost:${TARGET_PORT}" \
+              -c "/zap/wrk/scanners/zap/zap-baseline.conf" \
+              -J "/zap/wrk/zap.sarif" \
+              -r "/zap/wrk/zap-report.html" \
+              -I \
+            || true
+
+          echo "DAST: ZAP scan complete"
+          ls -lh zap.sarif 2>/dev/null || echo "Warning: zap.sarif not produced"
+
+          # Tear down the AISec container now that DAST is done
+          CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
+          if [ -n "$CONTAINER" ]; then
+            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+            echo "DAST: container $CONTAINER removed"
+          fi
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'zap.sarif,zap-report.html', allowEmptyArchive: true
+        }
       }
     }
 
@@ -220,6 +272,7 @@ pipeline {
 
           IMG_COUNT=0
           FS_COUNT=0
+          ZAP_COUNT=0
 
           if [ -f trivy-aisec-image.sarif ]; then
             IMG_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-aisec-image.sarif 2>/dev/null || echo 0)
@@ -241,7 +294,19 @@ pipeline {
             echo "trivy-fs: SARIF missing, skipping"
           fi
 
-          TOTAL=$((IMG_COUNT + FS_COUNT))
+          # ZAP SARIF: level=error maps to FAIL rules in zap-baseline.conf
+          # (SQL injection, SSRF, RFI, path traversal, XSS, OS command injection)
+          if [ -f zap.sarif ]; then
+            ZAP_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' zap.sarif 2>/dev/null || echo 0)
+            echo "zap-dast: $ZAP_COUNT HIGH/CRITICAL DAST finding(s)"
+            if [ "$ZAP_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' zap.sarif 2>/dev/null || true
+            fi
+          else
+            echo "zap-dast: SARIF missing (ZAP may not have run), skipping"
+          fi
+
+          TOTAL=$((IMG_COUNT + FS_COUNT + ZAP_COUNT))
           echo ""
           echo "Total unacknowledged CRITICAL findings: $TOTAL"
 
@@ -339,6 +404,13 @@ Review the archived SARIF files and fix all critical findings before pushing aga
       )
     }
     always {
+      // Safety net: ensure smoke/DAST container is removed even if stages fail
+      sh '''
+        CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
+        if [ -n "$CONTAINER" ]; then
+          docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+        fi
+      '''
       cleanWs()
     }
   }
