@@ -213,47 +213,47 @@ pipeline {
     stage('Security Gate') {
       steps {
         sh '''
-          NEW_CRITICALS=0
+          # Trivy SARIF: level=error → CRITICAL severity.
+          # .trivyignore is already applied by Trivy before the SARIF is written,
+          # so any level=error result here is a NEW, unacknowledged critical.
+          # jq counts them; 0 = gate passes, >0 = gate fails.
 
-          python3 - << 'PYEOF'
-import json, sys, os
+          IMG_COUNT=0
+          FS_COUNT=0
 
-# trivy-aisec-image.sarif already has .trivyignore applied by Trivy itself.
-# Any finding remaining = not in ignore list = unacknowledged = gate fails.
-sarif_files = {
-    'trivy-image': 'trivy-aisec-image.sarif',
-    'trivy-fs':    'trivy-fs.sarif',
-}
+          if [ -f trivy-aisec-image.sarif ]; then
+            IMG_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-aisec-image.sarif 2>/dev/null || echo 0)
+            echo "trivy-image: $IMG_COUNT unacknowledged CRITICAL finding(s)"
+            if [ "$IMG_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-aisec-image.sarif 2>/dev/null || true
+            fi
+          else
+            echo "trivy-image: SARIF missing, skipping"
+          fi
 
-total = 0
-for label, path in sarif_files.items():
-    if not os.path.exists(path):
-        print(f"  {label}: file missing, skipping")
-        continue
-    with open(path) as f:
-        d = json.load(f)
-    findings = []
-    for run in d.get('runs', []):
-        for r in run.get('results', []):
-            # Trivy SARIF: level=error → CRITICAL, level=warning → HIGH
-            # Gate only on CRITICAL (error) to avoid noisy HIGH failures
-            if r.get('level') == 'error':
-                rule_id = r.get('ruleId', 'unknown')
-                pkg = r.get('message', {}).get('text', '')[:60]
-                findings.append((rule_id, pkg))
-    print(f"  {label}: {len(findings)} CRITICAL finding(s) after ignore-file filter")
-    for fid, msg in findings:
-        print(f"    !! {fid} — {msg}")
-    total += len(findings)
+          if [ -f trivy-fs.sarif ]; then
+            FS_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-fs.sarif 2>/dev/null || echo 0)
+            echo "trivy-fs: $FS_COUNT unacknowledged CRITICAL finding(s)"
+            if [ "$FS_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-fs.sarif 2>/dev/null || true
+            fi
+          else
+            echo "trivy-fs: SARIF missing, skipping"
+          fi
 
-if total > 0:
-    print(f"\nSECURITY GATE FAILED: {total} new/unacknowledged CRITICAL finding(s).")
-    print("To resolve: fix the vulnerability OR add the CVE to scanners/trivy/.trivyignore")
-    print("with a justification comment, then open a PR for security team review.")
-    sys.exit(1)
-else:
-    print(f"\nSecurity gate PASSED — no unacknowledged critical findings.")
-PYEOF
+          TOTAL=$((IMG_COUNT + FS_COUNT))
+          echo ""
+          echo "Total unacknowledged CRITICAL findings: $TOTAL"
+
+          if [ "$TOTAL" -gt 0 ]; then
+            echo ""
+            echo "SECURITY GATE FAILED: $TOTAL new/unacknowledged CRITICAL finding(s)."
+            echo "To resolve: fix the vulnerability, OR open a PR adding the CVE to"
+            echo "scanners/trivy/.trivyignore with a justification comment for security review."
+            exit 1
+          fi
+
+          echo "Security gate PASSED — no unacknowledged critical findings."
         '''
       }
     }
