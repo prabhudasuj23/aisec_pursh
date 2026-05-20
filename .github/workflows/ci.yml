@@ -292,7 +292,7 @@ jobs:
       # ── AISec image ──────────────────────────────────────────────────────────
       - name: Docker metadata — AISec
         id: meta-aisec
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/aisec
           tags: |
@@ -318,7 +318,7 @@ jobs:
       # ── Pursh backend image ──────────────────────────────────────────────────
       - name: Docker metadata — Pursh backend
         id: meta-pursh
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/pursh-backend
           tags: |
