@@ -1,15 +1,53 @@
 pipeline {
   agent { label 'build-agent' }
 
+  // ── Auto-trigger on every GitHub push ────────────────────────────────────────
+  triggers {
+    githubPush()
+  }
+
+  options {
+    timeout(time: 45, unit: 'MINUTES')          // kill runaway builds
+    buildDiscarder(logRotator(numToKeepStr: '30'))
+    disableConcurrentBuilds()                    // no parallel builds on same branch
+    timestamps()
+  }
+
   environment {
     SONAR_URL        = 'http://3.14.146.228:9000'
     SONAR_PROJECT    = 'aisec_pursh'
     GHCR_IMAGE_AISEC = 'ghcr.io/prabhudasuj23/aisec'
     GHCR_IMAGE_PURSH = 'ghcr.io/prabhudasuj23/pursh-backend'
     PATH             = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+    // GitHub repo for commit status reporting (owner/repo)
+    GH_REPO         = 'prabhudasuj23/aisec_pursh'
   }
 
   stages {
+
+    // ── 0. Notify GitHub: build started ──────────────────────────────────────
+    stage('Notify — Pending') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+            if [ -n "$SHA" ]; then
+              curl -s -X POST \
+                -H "Authorization: token ${GH_TOKEN}" \
+                -H "Content-Type: application/json" \
+                https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+                -d "{
+                  \\"state\\": \\"pending\\",
+                  \\"target_url\\": \\"${BUILD_URL}\\",
+                  \\"description\\": \\"AISec pipeline running...\\",
+                  \\"context\\": \\"ci/aisec-devsecops\\"
+                }" || true
+            fi
+          '''
+        }
+      }
+    }
 
     stage('Checkout') {
       steps {
@@ -159,6 +197,50 @@ pipeline {
       }
     }
 
+    // ── Security gate: fail if critical findings exist ────────────────────────
+    // Enterprise AppSec: developers cannot merge if critical vulns are new.
+    // We parse SARIF and count criticals; fail the build (and block the merge)
+    // if any unacknowledged critical is found.
+    stage('Security Gate') {
+      steps {
+        sh '''
+          CRITICALS=0
+
+          # Count critical findings across all SARIFs
+          for sarif in semgrep.sarif trivy-fs.sarif trivy-aisec-image.sarif; do
+            if [ -f "$sarif" ]; then
+              COUNT=$(python3 -c "
+import json, sys
+try:
+    with open('$sarif') as f:
+        d = json.load(f)
+    n = 0
+    for run in d.get('runs', []):
+        for r in run.get('results', []):
+            sev = r.get('properties', {}).get('severity', '') or ''
+            lvl = r.get('level', '')
+            if sev.lower() == 'critical' or lvl == 'error':
+                n += 1
+    print(n)
+except Exception as e:
+    print(0)
+" 2>/dev/null || echo 0)
+              echo "$sarif: $COUNT critical/error findings"
+              CRITICALS=$((CRITICALS + COUNT))
+            fi
+          done
+
+          echo "Total critical findings: $CRITICALS"
+          if [ "$CRITICALS" -gt 0 ]; then
+            echo "SECURITY GATE FAILED: $CRITICALS critical finding(s) must be triaged before merge."
+            echo "View archived SARIFs in Jenkins for details."
+            exit 1
+          fi
+          echo "Security gate passed — no critical findings."
+        '''
+      }
+    }
+
     stage('Push to GHCR') {
       when { branch 'main' }
       steps {
@@ -166,23 +248,81 @@ pipeline {
                          usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
           sh '''
             SHORT_SHA=$(git rev-parse --short HEAD)
+            # Re-authenticate — token may have expired between Build and Push stages
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+
             docker push ${GHCR_IMAGE_AISEC}:${SHORT_SHA}
             docker push ${GHCR_IMAGE_AISEC}:latest
             docker push ${GHCR_IMAGE_PURSH}:${SHORT_SHA}
             docker push ${GHCR_IMAGE_PURSH}:latest
-            echo "Pushed: ${SHORT_SHA}"
+            echo "Pushed to GHCR: ${SHORT_SHA}"
           '''
         }
       }
     }
   }
 
+  // ── Post: report final status back to GitHub commit ───────────────────────
   post {
+    success {
+      echo "All gates passed — pipeline green."
+      withCredentials([usernamePassword(credentialsId: 'github-pat',
+                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+        sh '''
+          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+          if [ -n "$SHA" ]; then
+            curl -s -X POST \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+              -d "{
+                \\"state\\": \\"success\\",
+                \\"target_url\\": \\"${BUILD_URL}\\",
+                \\"description\\": \\"All security gates passed\\",
+                \\"context\\": \\"ci/aisec-devsecops\\"
+              }" || true
+          fi
+        '''
+      }
+    }
+    failure {
+      echo "Pipeline FAILED — check archived SARIFs."
+      withCredentials([usernamePassword(credentialsId: 'github-pat',
+                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+        sh '''
+          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+          if [ -n "$SHA" ]; then
+            curl -s -X POST \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+              -d "{
+                \\"state\\": \\"failure\\",
+                \\"target_url\\": \\"${BUILD_URL}console\\",
+                \\"description\\": \\"Security gate failed — review findings\\",
+                \\"context\\": \\"ci/aisec-devsecops\\"
+              }" || true
+          fi
+        '''
+      }
+      // Email developer on failure (configure SMTP in Jenkins first)
+      emailext(
+        subject: "FAILED: AISec pipeline — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        body: """
+Pipeline failed on branch ${env.BRANCH_NAME} — commit ${env.GIT_COMMIT?.take(7)}.
+
+Build URL: ${env.BUILD_URL}
+Console:   ${env.BUILD_URL}console
+SARIFs:    ${env.BUILD_URL}artifact/
+
+Review the archived SARIF files and fix all critical findings before pushing again.
+        """,
+        to: '${DEFAULT_RECIPIENTS}',
+        mimeType: 'text/plain'
+      )
+    }
     always {
-      echo "Pipeline status: ${currentBuild.currentResult}"
       cleanWs()
     }
-    success { echo "All gates passed." }
-    failure { echo "Pipeline FAILED — check archived SARIFs." }
   }
 }
