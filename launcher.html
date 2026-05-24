@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AISec + Pursh Launcher</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #030712;
+      color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .subtitle { color: #6b7280; font-size: 0.9rem; margin-bottom: 3rem; text-align: center; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 800px; width: 100%; }
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .card-header { display: flex; align-items: center; gap: 0.75rem; }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-teal  { background: #0f3d38; color: #2dd4bf; border-color: #0d9488; }
+    .badge-indigo{ background: #1e1b4b; color: #a5b4fc; border-color: #6366f1; }
+    .card h2 { font-size: 1.1rem; font-weight: 900; }
+    .card p  { color: #6b7280; font-size: 0.8rem; line-height: 1.5; flex: 1; }
+    .services { display: flex; flex-direction: column; gap: 0.5rem; }
+    .service {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #1f2937; border-radius: 0.5rem; padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    .service-name { color: #d1d5db; font-weight: 600; }
+    .service-url  { color: #6b7280; font-family: monospace; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #374151; flex-shrink: 0; }
+    .dot.online { background: #10b981; }
+    .dot.checking { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .btn {
+      padding: 0.75rem 1rem; border-radius: 0.75rem; border: none;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; text-decoration: none; text-align: center;
+      display: block;
+    }
+    .btn-teal   { background: #0d9488; color: #fff; }
+    .btn-teal:hover   { background: #0f766e; }
+    .btn-indigo { background: #4f46e5; color: #fff; }
+    .btn-indigo:hover { background: #4338ca; }
+    .btn-gray   { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
+    .btn-gray:hover   { background: #374151; color: #f9fafb; }
+    .btn-row { display: flex; gap: 0.5rem; }
+    .btn-row .btn { flex: 1; }
+    .full-row { grid-column: 1 / -1; }
+    .launch-all {
+      background: linear-gradient(135deg, #0d9488, #4f46e5);
+      color: #fff; padding: 1rem; border-radius: 0.75rem;
+      border: none; font-size: 1rem; font-weight: 900;
+      cursor: pointer; width: 100%; transition: opacity 0.15s;
+      letter-spacing: -0.01em;
+    }
+    .launch-all:hover { opacity: 0.9; }
+    .footer { margin-top: 2rem; color: #374151; font-size: 0.75rem; text-align: center; }
+    .status-row { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+    .status-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 999px; padding: 0.3rem 0.75rem;
+      font-size: 0.7rem; color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 AISec + Pursh</h1>
+  <p class="subtitle">DevSecOps Security Lab — Local Launcher</p>
+
+  <div class="grid">
+
+    <!-- Pursh card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="badge badge-teal">Target App</span>
+      </div>
+      <h2>Pursh Telehealth</h2>
+      <p>Synthetic telehealth app — the scan target. Patients, doctors, appointments, and AI symptom checker. Demonstration only — no real PHI.</p>
+
+      <div class="services">
+        <div class="service">
+          <span class="service-name">Frontend (Next.js)</span>
+          <span class="service-url">:3001</span>
+          <span class="dot checking" id="dot-3001"></span>
+        </div>
+        <div class="service">
+          <span class="service-name">Backend (FastAPI)</span>
+          <span class="service-url">:8001</span>
+          <span class="dot checking" id="dot-8001"></span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <a href="http://localhost:3001" target="_blank" class="btn btn-teal">Open App ↗</a>
+        <a href="http://localhost:8001/docs" target="_blank" class="btn btn-gray">API Docs ↗</a>
+      </div>
+    </div>
+
+    <!-- AISec card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="badge badge-indigo">Internal</span>
+      </div>
+      <h2>AISec Dashboard</h2>
+      <p>Security scanning platform — SAST, SCA, Secrets, DAST, Container, IaC, SBOM. All 8 scanners target the Pursh app.</p>
+
+      <div class="services">
+        <div class="service">
+          <span class="service-name">Dashboard (Next.js)</span>
+          <span class="service-url">:3002</span>
+          <span class="dot checking" id="dot-3002"></span>
+        </div>
+        <div class="service">
+          <span class="service-name">Runner (FastAPI)</span>
+          <span class="service-url">:8002</span>
+          <span class="dot checking" id="dot-8002"></span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <a href="http://localhost:3002" target="_blank" class="btn btn-indigo">Open Dashboard ↗</a>
+        <a href="http://localhost:8002/docs" target="_blank" class="btn btn-gray">Runner API ↗</a>
+      </div>
+    </div>
+
+    <!-- Start scripts -->
+    <div class="card">
+      <h2>Start Pursh</h2>
+      <p>Opens two terminal windows — Pursh backend on :8001 and frontend on :3001 — then opens the app in your browser.</p>
+      <a href="start-pursh.bat" class="btn btn-teal">▶ start-pursh.bat</a>
+    </div>
+
+    <div class="card">
+      <h2>Start AISec</h2>
+      <p>Opens two terminal windows — AISec runner on :8002 and dashboard on :3002 — then opens the dashboard in your browser.</p>
+      <a href="start-internal.bat" class="btn btn-indigo">▶ start-internal.bat</a>
+    </div>
+
+    <!-- Launch all -->
+    <div class="card full-row" style="align-items:center; flex-direction:row; justify-content:space-between; gap:2rem;">
+      <div>
+        <h2 style="margin-bottom:0.25rem">Start Everything</h2>
+        <p style="max-width:400px">Launches all 4 services at once in separate terminal windows, then opens both apps in your browser after 10 seconds.</p>
+      </div>
+      <a href="start-all.bat" class="btn launch-all" style="min-width:180px; white-space:nowrap;">▶▶ start-all.bat</a>
+    </div>
+
+  </div>
+
+  <div class="status-row" id="status-row">
+    <div class="status-pill"><span class="dot checking" id="pill-3001"></span>Pursh :3001</div>
+    <div class="status-pill"><span class="dot checking" id="pill-8001"></span>Pursh API :8001</div>
+    <div class="status-pill"><span class="dot checking" id="pill-3002"></span>AISec :3002</div>
+    <div class="status-pill"><span class="dot checking" id="pill-8002"></span>Runner :8002</div>
+  </div>
+
+  <p class="footer">Open this file in a browser — no server needed. Double-click the .bat files to start services.</p>
+
+  <script>
+    const PORTS = [
+      { port: 3001, health: 'http://localhost:3001', ids: ['dot-3001','pill-3001'] },
+      { port: 8001, health: 'http://localhost:8001/healthz', ids: ['dot-8001','pill-8001'] },
+      { port: 3002, health: 'http://localhost:3002', ids: ['dot-3002','pill-3002'] },
+      { port: 8002, health: 'http://localhost:8002/healthz', ids: ['dot-8002','pill-8002'] },
+    ];
+
+    async function checkPort({ health, ids }) {
+      try {
+        const res = await fetch(health, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(2000) });
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.className = el.className.replace('checking','online'); }
+        });
+      } catch {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.className = el.className.replace('online','').replace('checking',''); }
+        });
+      }
+    }
+
+    function checkAll() { PORTS.forEach(checkPort); }
+    checkAll();
+    setInterval(checkAll, 5000);
+  </script>
+</body>
+</html>

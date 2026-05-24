@@ -16,7 +16,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-from pursh.backend.core.config import get_settings
+from core.config import get_settings
 
 
 def hash_patient_id(patient_id: str) -> str:

@@ -1,0 +1,64 @@
+pipeline {
+  agent any
+  environment {
+    APP_IMAGE = "pursh-backend:${env.BUILD_NUMBER}"
+    REGISTRY  = "your-registry"    // update with your registry URL
+  }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+    stage('Tests — Pursh Backend') {
+      steps {
+        dir('pursh/backend') {
+          sh 'pip install -r requirements.txt && python -m pytest tests/ -v --tb=short'
+        }
+      }
+    }
+    stage('SCA — Trivy (pursh/ only)') {
+      steps {
+        sh 'trivy fs pursh/ --format json --severity CRITICAL,HIGH --output internal/scan-results/trivy-pursh-sca.json --exit-code 1 --ignore-unfixed'
+      }
+    }
+    stage('SAST — Semgrep (pursh/ only)') {
+      steps {
+        sh '''semgrep scan \
+          --config p/python --config p/security-audit --config p/owasp-top-ten \
+          --json --output internal/scan-results/semgrep-pursh.json \
+          pursh/'''
+      }
+    }
+    stage('Secrets — Gitleaks (pursh/ only)') {
+      steps {
+        sh '''internal/scanners/gitleaks-bin/gitleaks detect \
+          --source pursh/ \
+          --config internal/scanners/gitleaks/.gitleaks.toml \
+          --report-format json \
+          --report-path internal/scan-results/gitleaks-clean.json \
+          --no-git'''
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        script {
+          docker.build(env.APP_IMAGE, '-f pursh/backend/Dockerfile pursh/backend')
+        }
+      }
+    }
+    stage('Image Scan — Trivy') {
+      steps {
+        sh "trivy image ${env.APP_IMAGE} --severity CRITICAL --exit-code 1"
+      }
+    }
+    stage('Smoke Test') {
+      steps {
+        sh 'curl -f http://localhost:8001/health || (echo "Pursh backend not healthy" && exit 1)'
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: 'internal/scan-results/*.json', allowEmptyArchive: true
+    }
+  }
+}

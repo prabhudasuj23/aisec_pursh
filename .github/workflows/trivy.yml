@@ -42,7 +42,7 @@ jobs:
       - name: Trivy SCA on AISec
         uses: ./.github/actions/trivy-fs
         with:
-          target-dir: aisec/
+          target-dir: internal/aisec/
           sarif-output: trivy-aisec.sarif
           severity: CRITICAL,HIGH,MEDIUM
 

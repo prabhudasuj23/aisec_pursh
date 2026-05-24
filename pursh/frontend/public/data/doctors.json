@@ -1,0 +1,482 @@
+[
+  {
+    "id": "static-001", "name": "Dr. Priya Sharma", "initials": "PS",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "MH-78432/2015", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Kokilaben Dhirubhai Ambani Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-002", "name": "Dr. Ananya Krishnan", "initials": "AK",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-52104/2013", "qualification": "MBBS, DNB (Dermatology)",
+    "hospital": "Apollo Hospitals", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-003", "name": "Dr. Rohan Mehta", "initials": "RM",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "DL-34219/2016", "qualification": "MBBS, MD (Skin & VD)",
+    "hospital": "Max Super Speciality Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-004", "name": "Dr. Shalini Reddy", "initials": "SR",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TS-61837/2014", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Yashoda Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-005", "name": "Dr. Karthik Subramaniam", "initials": "KS",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "KA-29341/2017", "qualification": "MBBS, DVD",
+    "hospital": "Manipal Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-006", "name": "Dr. Meenakshi Iyer", "initials": "MI",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "MH-91204/2012", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Fortis Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-007", "name": "Dr. Aditya Kapoor", "initials": "AK",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "DL-47832/2018", "qualification": "MBBS, MD, FRCP",
+    "hospital": "AIIMS Delhi", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-008", "name": "Dr. Deepika Nair", "initials": "DN",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "KA-38821/2015", "qualification": "MBBS, DNB (Dermatology)",
+    "hospital": "Narayana Health", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-009", "name": "Dr. Vikram Patel", "initials": "VP",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "MH-63017/2011", "qualification": "MBBS, MD (Skin & VD)",
+    "hospital": "Hinduja Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-010", "name": "Dr. Lakshmi Venkat", "initials": "LV",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "TN-44912/2016", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Kauvery Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-011", "name": "Dr. Arjun Bose", "initials": "AB",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TS-72183/2019", "qualification": "MBBS, DNB (Skin & VD)",
+    "hospital": "Care Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-012", "name": "Dr. Nandita Ghosh", "initials": "NG",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "DL-58294/2014", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Medanta – The Medicity", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-013", "name": "Dr. Ravi Shankar", "initials": "RS",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "KA-11042/2010", "qualification": "MBBS, MD (General Medicine)",
+    "hospital": "Manipal Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-014", "name": "Dr. Sunita Agarwal", "initials": "SA",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "DL-27831/2009", "qualification": "MBBS, MD",
+    "hospital": "Sir Ganga Ram Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-015", "name": "Dr. Mohan Rao", "initials": "MR",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL PRACTICE",
+    "nmcRegNo": "TS-39042/2012", "qualification": "MBBS, MRCP",
+    "hospital": "Continental Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-016", "name": "Dr. Pooja Bansal", "initials": "PB",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "MH-54731/2013", "qualification": "MBBS, MD (Internal Medicine)",
+    "hospital": "Bombay Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-017", "name": "Dr. Suresh Kumar", "initials": "SK",
+    "specialty": "General Practice", "nmcSpecialty": "FAMILY MEDICINE",
+    "nmcRegNo": "TN-68324/2011", "qualification": "MBBS, DNB (Family Medicine)",
+    "hospital": "Gleneagles Global Health City", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-018", "name": "Dr. Kavitha Menon", "initials": "KM",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "KA-22943/2015", "qualification": "MBBS, MD",
+    "hospital": "Fortis Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-019", "name": "Dr. Ashok Verma", "initials": "AV",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "DL-41832/2008", "qualification": "MBBS, MD, FRCGP",
+    "hospital": "Apollo Hospitals Delhi", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-020", "name": "Dr. Rekha Pillai", "initials": "RP",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "MH-83041/2007", "qualification": "MBBS, MD (General Medicine)",
+    "hospital": "Lilavati Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-021", "name": "Dr. Gopal Krishnamurthy", "initials": "GK",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL PRACTICE",
+    "nmcRegNo": "TS-52018/2016", "qualification": "MBBS, FCGP",
+    "hospital": "KIMS Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-022", "name": "Dr. Nalini Sundaram", "initials": "NS",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "TN-71042/2014", "qualification": "MBBS, MD",
+    "hospital": "Sri Ramachandra Medical Centre", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-023", "name": "Dr. Sanjay Mishra", "initials": "SM",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "DL-39241/2013", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "AIIMS Delhi", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-024", "name": "Dr. Anita Desai", "initials": "AD",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "MH-61274/2014", "qualification": "MBBS, DPM, MD (Psychiatry)",
+    "hospital": "Jaslok Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-025", "name": "Dr. Harish Babu", "initials": "HB",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "KA-43819/2015", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "NIMHANS", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-026", "name": "Dr. Nisha Choudhary", "initials": "NC",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "TS-58031/2016", "qualification": "MBBS, DNB (Psychiatry)",
+    "hospital": "Apollo Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-027", "name": "Dr. Rajesh Natarajan", "initials": "RN",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "TN-67193/2012", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "MIOT International", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-028", "name": "Dr. Sudha Rao", "initials": "SR",
+    "specialty": "Mental Health", "nmcSpecialty": "MENTAL HEALTH",
+    "nmcRegNo": "KA-31028/2010", "qualification": "MBBS, MD (Psychiatry), MRCPsych",
+    "hospital": "Vikram Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-029", "name": "Dr. Amit Srivastava", "initials": "AS",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "DL-53047/2017", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "Medanta – The Medicity", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-030", "name": "Dr. Preethi Balakrishnan", "initials": "PB",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "MH-72091/2016", "qualification": "MBBS, DPM",
+    "hospital": "Masina Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-031", "name": "Dr. Ramesh Babu Naidu", "initials": "RN",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "TS-44028/2013", "qualification": "MBBS, MD, DNB (Psychiatry)",
+    "hospital": "Sunshine Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-032", "name": "Dr. Brinda Krishnaswamy", "initials": "BK",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "TN-81203/2018", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "Kauvery Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-033", "name": "Dr. Tanveer Ahmed", "initials": "TA",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "DL-62934/2014", "qualification": "MBBS, MD (Dermatology), Trichology Fellowship",
+    "hospital": "Hair & Care Clinic, Max Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-034", "name": "Dr. Shobha Hegde", "initials": "SH",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "KA-49231/2016", "qualification": "MBBS, MD (Skin & VD)",
+    "hospital": "Trichokare Clinic, Manipal Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-035", "name": "Dr. Neel Patel", "initials": "NP",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "MH-58421/2013", "qualification": "MBBS, DVD, Trichology (ISHRS)",
+    "hospital": "Hairline International, Breach Candy Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-036", "name": "Dr. Gayatri Suresh", "initials": "GS",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-39812/2015", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "Apollo Cosmetic Clinic", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-037", "name": "Dr. Venkat Ramaiah", "initials": "VR",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "TRICHOLOGY",
+    "nmcRegNo": "TS-71034/2017", "qualification": "MBBS, MD (Skin), Trichology Fellowship",
+    "hospital": "Kaya Skin Clinic, KIMS", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-038", "name": "Dr. Madhuri Joshi", "initials": "MJ",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "MH-82043/2012", "qualification": "MBBS, MD (Dermatology & STD)",
+    "hospital": "DHI India, Bombay Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-039", "name": "Dr. Srikant Parthasarathy", "initials": "SP",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "KA-62041/2018", "qualification": "MBBS, DNB (Dermatology)",
+    "hospital": "Sparsh Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-040", "name": "Dr. Kritika Malhotra", "initials": "KM",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "DL-74821/2019", "qualification": "MBBS, MD (Skin & VD)",
+    "hospital": "Skin & You Clinic, Fortis", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-041", "name": "Dr. Pradeep Anand", "initials": "PA",
+    "specialty": "Sexual Health", "nmcSpecialty": "VENEREOLOGY",
+    "nmcRegNo": "MH-43928/2011", "qualification": "MBBS, MD (Skin, VD & Leprosy)",
+    "hospital": "KEM Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-042", "name": "Dr. Kamala Devi", "initials": "KD",
+    "specialty": "Sexual Health", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-58204/2013", "qualification": "MBBS, DVD",
+    "hospital": "Government General Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-043", "name": "Dr. Farhan Shaikh", "initials": "FS",
+    "specialty": "Sexual Health", "nmcSpecialty": "SEXUAL MEDICINE",
+    "nmcRegNo": "DL-61023/2015", "qualification": "MBBS, MD (Psychiatry), Sex Medicine",
+    "hospital": "Sir Ganga Ram Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-044", "name": "Dr. Sowmya Rajan", "initials": "SR",
+    "specialty": "Sexual Health", "nmcSpecialty": "VENEREOLOGY",
+    "nmcRegNo": "KA-37821/2014", "qualification": "MBBS, MD (Dermatology & STD)",
+    "hospital": "Bangalore Baptist Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-045", "name": "Dr. Mahesh Yadav", "initials": "MY",
+    "specialty": "Sexual Health", "nmcSpecialty": "VENEREOLOGY",
+    "nmcRegNo": "TS-49312/2016", "qualification": "MBBS, DVD",
+    "hospital": "Apollo Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-046", "name": "Dr. Jyoti Prabha", "initials": "JP",
+    "specialty": "Sexual Health", "nmcSpecialty": "SEXUAL MEDICINE",
+    "nmcRegNo": "MH-71038/2017", "qualification": "MBBS, MD, Certificate in Sexual Medicine",
+    "hospital": "Hinduja National Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-047", "name": "Dr. Krishnaswamy Raman", "initials": "KR",
+    "specialty": "Sexual Health", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-62831/2012", "qualification": "MBBS, MD (Skin, VD & Leprosy)",
+    "hospital": "Frontier Lifeline Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-048", "name": "Dr. Aloka Singh", "initials": "AS",
+    "specialty": "Sexual Health", "nmcSpecialty": "VENEREOLOGY",
+    "nmcRegNo": "DL-83041/2018", "qualification": "MBBS, DNB (Dermatology & STD)",
+    "hospital": "Maulana Azad Medical College", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-049", "name": "Dr. Natarajan Pillai", "initials": "NP",
+    "specialty": "General Wellness", "nmcSpecialty": "PREVENTIVE MEDICINE",
+    "nmcRegNo": "TN-48032/2010", "qualification": "MBBS, MD (Preventive & Social Medicine)",
+    "hospital": "Fortis Malar Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-050", "name": "Dr. Sangita Patel", "initials": "SP",
+    "specialty": "General Wellness", "nmcSpecialty": "COMMUNITY MEDICINE",
+    "nmcRegNo": "MH-62048/2012", "qualification": "MBBS, MD (Community Medicine)",
+    "hospital": "Seven Hills Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-051", "name": "Dr. Bhaskar Rao", "initials": "BR",
+    "specialty": "General Wellness", "nmcSpecialty": "PREVENTIVE MEDICINE",
+    "nmcRegNo": "TS-37841/2011", "qualification": "MBBS, MD (PSM)",
+    "hospital": "Nizam's Institute of Medical Sciences", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-052", "name": "Dr. Usha Krishnan", "initials": "UK",
+    "specialty": "General Wellness", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "KA-52841/2014", "qualification": "MBBS, MD (General Medicine)",
+    "hospital": "Columbia Asia Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-053", "name": "Dr. Tarun Gupta", "initials": "TG",
+    "specialty": "General Wellness", "nmcSpecialty": "PREVENTIVE MEDICINE",
+    "nmcRegNo": "DL-44831/2013", "qualification": "MBBS, MD (Preventive Medicine), PGDHA",
+    "hospital": "National Heart Institute", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-054", "name": "Dr. Padma Seshadri", "initials": "PS",
+    "specialty": "General Wellness", "nmcSpecialty": "COMMUNITY MEDICINE",
+    "nmcRegNo": "TN-59042/2015", "qualification": "MBBS, DPH, MD (Community Medicine)",
+    "hospital": "Christian Medical College", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-055", "name": "Dr. Vinod Kumar", "initials": "VK",
+    "specialty": "General Wellness", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "MH-73048/2016", "qualification": "MBBS, MD",
+    "hospital": "Breach Candy Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-056", "name": "Dr. Chandrika Murthy", "initials": "CM",
+    "specialty": "General Wellness", "nmcSpecialty": "PREVENTIVE MEDICINE",
+    "nmcRegNo": "KA-61038/2017", "qualification": "MBBS, MD (PSM)",
+    "hospital": "St. John's Medical College Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-057", "name": "Dr. Sai Rama Krishna", "initials": "SR",
+    "specialty": "General Wellness", "nmcSpecialty": "COMMUNITY MEDICINE",
+    "nmcRegNo": "TS-68041/2018", "qualification": "MBBS, MD (Community Medicine)",
+    "hospital": "Medicover Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-058", "name": "Dr. Renuka Sharma", "initials": "RS",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "DL-52038/2012", "qualification": "MBBS, MD (General Medicine), DM (Endocrinology)",
+    "hospital": "AIIMS Delhi", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-059", "name": "Dr. Sunil Bhatt", "initials": "SB",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "MH-64821/2013", "qualification": "MBBS, MD, DM (Endocrinology)",
+    "hospital": "Nanavati Super Speciality Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-060", "name": "Dr. Radha Krishnaswamy", "initials": "RK",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "TN-47032/2014", "qualification": "MBBS, MD (Medicine), DM (Endocrinology)",
+    "hospital": "M.G.M. Healthcare", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-061", "name": "Dr. Anil Garg", "initials": "AG",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "KA-38291/2015", "qualification": "MBBS, MD, DM (Endocrinology)",
+    "hospital": "Manipal Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-062", "name": "Dr. Pavithra Krishnan", "initials": "PK",
+    "specialty": "Weight Management", "nmcSpecialty": "NUTRITION AND DIETETICS",
+    "nmcRegNo": "TS-61042/2016", "qualification": "MBBS, MD (General Medicine), Clinical Nutrition",
+    "hospital": "Aster Prime Hospital", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-063", "name": "Dr. Vivek Sood", "initials": "VS",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "DL-73021/2017", "qualification": "MBBS, DNB, DM (Endocrinology & Metabolism)",
+    "hospital": "Max Super Speciality Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-064", "name": "Dr. Meera Balaji", "initials": "MB",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "MH-84032/2018", "qualification": "MBBS, MD (Medicine), MRCP, DM",
+    "hospital": "Kokilaben Dhirubhai Ambani Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-065", "name": "Dr. Rajiv Bhatia", "initials": "RB",
+    "specialty": "Weight Management", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "KA-59042/2019", "qualification": "MBBS, MD (General Medicine), Weight Management Cert.",
+    "hospital": "Sakra World Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-066", "name": "Dr. Swetha Ramesh", "initials": "SR",
+    "specialty": "Weight Management", "nmcSpecialty": "NUTRITION AND DIETETICS",
+    "nmcRegNo": "TN-72093/2017", "qualification": "MBBS, MD, Diploma in Nutrition",
+    "hospital": "Vijaya Hospital", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-067", "name": "Dr. Harsha Vardhan Reddy", "initials": "HV",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "TS-83041/2020", "qualification": "MBBS, MD, DM (Endocrinology)",
+    "hospital": "Yashoda Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-068", "name": "Dr. Bhavna Joshi", "initials": "BJ",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "MH-38291/2016", "qualification": "MBBS, MD (Internal Medicine)",
+    "hospital": "Wockhardt Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-069", "name": "Dr. Praveen Reddy", "initials": "PR",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "TS-47012/2015", "qualification": "MBBS, MD",
+    "hospital": "Citizens Specialty Hospital", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-070", "name": "Dr. Shweta Narayan", "initials": "SN",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "KA-53021/2019", "qualification": "MBBS, MD (Psychiatry)",
+    "hospital": "Cadabams Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-071", "name": "Dr. Raghunath Prasad", "initials": "RP",
+    "specialty": "General Wellness", "nmcSpecialty": "PREVENTIVE MEDICINE",
+    "nmcRegNo": "DL-64012/2019", "qualification": "MBBS, MD (PSM), MBA (Hospital Mgmt)",
+    "hospital": "Rockland Hospital", "city": "Delhi", "state": "Delhi", "source": "static"
+  },
+  {
+    "id": "static-072", "name": "Dr. Kaveri Shanmugam", "initials": "KS",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-83042/2020", "qualification": "MBBS, MD (Dermatology), Trichology Fellowship",
+    "hospital": "Ramdev Hair Clinic, Apollo", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-073", "name": "Dr. Naresh Shetty", "initials": "NS",
+    "specialty": "Dermatology", "nmcSpecialty": "DERMATOLOGY",
+    "nmcRegNo": "KA-72048/2020", "qualification": "MBBS, MD (Dermatology)",
+    "hospital": "BGS Gleneagles Global Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-074", "name": "Dr. Anupama Singh", "initials": "AS",
+    "specialty": "Sexual Health", "nmcSpecialty": "SEXUAL MEDICINE",
+    "nmcRegNo": "KA-48031/2018", "qualification": "MBBS, MD (Skin & VD), Certificate in Sexual Medicine",
+    "hospital": "Cloudnine Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-075", "name": "Dr. Subramaniam Venkatesan", "initials": "SV",
+    "specialty": "General Practice", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "TN-93012/2020", "qualification": "MBBS, MD (General Medicine)",
+    "hospital": "Chettinad Health City", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  },
+  {
+    "id": "static-076", "name": "Dr. Nandini Rao", "initials": "NR",
+    "specialty": "Mental Health", "nmcSpecialty": "PSYCHIATRY",
+    "nmcRegNo": "MH-93041/2020", "qualification": "MBBS, DPM, FIPS",
+    "hospital": "Nair Hospital", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-077", "name": "Dr. Siddharth Kulkarni", "initials": "SK",
+    "specialty": "Weight Management", "nmcSpecialty": "ENDOCRINOLOGY",
+    "nmcRegNo": "MH-73028/2019", "qualification": "MBBS, DNB (Endocrinology)",
+    "hospital": "Ruby Hall Clinic", "city": "Mumbai", "state": "Maharashtra", "source": "static"
+  },
+  {
+    "id": "static-078", "name": "Dr. Geetha Varghese", "initials": "GV",
+    "specialty": "General Wellness", "nmcSpecialty": "GENERAL MEDICINE",
+    "nmcRegNo": "KA-82039/2020", "qualification": "MBBS, MD (General Medicine)",
+    "hospital": "Aster CMI Hospital", "city": "Bengaluru", "state": "Karnataka", "source": "static"
+  },
+  {
+    "id": "static-079", "name": "Dr. Mohammed Irfan", "initials": "MI",
+    "specialty": "Sexual Health", "nmcSpecialty": "VENEREOLOGY",
+    "nmcRegNo": "TS-91042/2021", "qualification": "MBBS, MD (Skin, VD & Leprosy)",
+    "hospital": "Rainbow Hospitals", "city": "Hyderabad", "state": "Telangana", "source": "static"
+  },
+  {
+    "id": "static-080", "name": "Dr. Chitra Balakumar", "initials": "CB",
+    "specialty": "Hair & Scalp", "nmcSpecialty": "DERMATOLOGY & VENEREOLOGY",
+    "nmcRegNo": "TN-91023/2021", "qualification": "MBBS, MD (Dermatology), FUT Certified",
+    "hospital": "Dr. Mohan's Hair Clinic, Vijaya", "city": "Chennai", "state": "Tamil Nadu", "source": "static"
+  }
+]

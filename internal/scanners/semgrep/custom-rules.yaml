@@ -1,0 +1,74 @@
+rules:
+  # ── PHI logging prevention (Pursh-specific) ───────────────────────────────
+  - id: pursh-no-raw-patient-id-in-log
+    message: >
+      Detected potential raw patient ID in a log call. Per CLAUDE.md §10 PHI rule,
+      patient identifiers must be hashed before logging. Use hash_patient_id() from
+      pursh.backend.core.logging. HIPAA §164.312(b): audit controls must not expose PHI.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: |
+          $LOG.$LEVEL(..., patient_id=$X, ...)
+      - pattern: |
+          $LOG.$LEVEL(..., user_id=$X, ...)
+    paths:
+      include:
+        - "**/pursh/backend/"
+
+  # ── Hardcoded Supabase keys ────────────────────────────────────────────────
+  - id: no-hardcoded-supabase-key
+    message: >
+      Detected what looks like a hardcoded Supabase key. Store all Supabase
+      credentials in environment variables via pydantic-settings, never inline.
+      CWE-798: Use of Hard-coded Credentials.
+    languages: [python, typescript, javascript]
+    severity: ERROR
+    patterns:
+      - pattern: |
+          "eyJ..."
+    paths:
+      include:
+        - pursh/
+        - aisec/
+
+  # ── SQL string formatting ──────────────────────────────────────────────────
+  - id: no-sql-string-format
+    message: >
+      Detected f-string or .format() in what may be a SQL query. Use SQLAlchemy
+      parameterized queries (:param syntax) or text() with bindparams.
+      CWE-89: SQL Injection. OWASP A03:2021.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: |
+          f"SELECT ... {$VAR} ..."
+      - pattern: |
+          "SELECT ...".format(...)
+    paths:
+      include:
+        - "**/aisec/app/"
+        - "**/pursh/backend/"
+
+  # ── Missing PHI-SAFE annotation ──────────────────────────────────────────
+  - id: pursh-phi-safe-annotation-required
+    message: >
+      Function name suggests it touches patient data but lacks # PHI-SAFE annotation.
+      Per CLAUDE.md §10, all functions touching patient data must carry this comment.
+      HIPAA §164.312(b).
+    languages: [python]
+    severity: WARNING
+    patterns:
+      - pattern: |
+          def $FUNC($...PARAMS):
+              ...
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: ".*(patient|Patient|PHI|phi).*"
+      - pattern-not: |
+          def $FUNC($...PARAMS):
+              # PHI-SAFE
+              ...
+    paths:
+      include:
+        - "**/pursh/backend/"

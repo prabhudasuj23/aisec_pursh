@@ -13,8 +13,8 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, field_validator
 
-from pursh.backend.auth.supabase import PurshUser, require_pursh_user
-from pursh.backend.core.logging import get_logger, hash_patient_id
+from auth.supabase import PurshUser, require_pursh_user
+from core.logging import get_logger, hash_patient_id
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/appointments", tags=["appointments"])

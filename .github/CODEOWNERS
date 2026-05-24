@@ -9,29 +9,29 @@
 *                                   @kvrp-csc-lgp
 
 # ── Authentication & OIDC (highest sensitivity) ────────────────────────────────
-/aisec/app/auth/                    @kvrp-csc-lgp
+/internal/aisec/app/auth/           @kvrp-csc-lgp
 /pursh/backend/auth/                @kvrp-csc-lgp
 
 # ── Compliance & finding mappings ──────────────────────────────────────────────
-/aisec/app/mappings/                @kvrp-csc-lgp
-/docs/compliance/                   @kvrp-csc-lgp
+/internal/aisec/app/mappings/       @kvrp-csc-lgp
+/internal/docs/compliance/          @kvrp-csc-lgp
 
 # ── Infrastructure & IaC ──────────────────────────────────────────────────────
-/infra/                             @kvrp-csc-lgp
-/infra/terraform/                   @kvrp-csc-lgp
+/internal/infra/                    @kvrp-csc-lgp
+/internal/infra/terraform/          @kvrp-csc-lgp
 
 # ── CI/CD pipelines ────────────────────────────────────────────────────────────
 /.github/workflows/                 @kvrp-csc-lgp
-/pipelines/                         @kvrp-csc-lgp
+/internal/pipelines/                @kvrp-csc-lgp
 
 # ── Incident runbooks & threat models ─────────────────────────────────────────
-/docs/runbooks/                     @kvrp-csc-lgp
-/docs/threat-models/                @kvrp-csc-lgp
+/internal/docs/runbooks/            @kvrp-csc-lgp
+/internal/docs/threat-models/       @kvrp-csc-lgp
 
 # ── Security policy & SCM hardening docs ──────────────────────────────────────
 /.github/SECURITY.md                @kvrp-csc-lgp
-/docs/scm-hardening.md              @kvrp-csc-lgp
-/commit-signing-policy.md           @kvrp-csc-lgp
+/internal/docs/scm-hardening.md     @kvrp-csc-lgp
+/internal/commit-signing-policy.md  @kvrp-csc-lgp
 /CLAUDE.md                          @kvrp-csc-lgp
 
 # ── Pursh PHI surface (audit log, storage, LLM redaction) ─────────────────────

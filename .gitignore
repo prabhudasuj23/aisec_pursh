@@ -115,11 +115,18 @@ gitleaks-report/
 checkov-output/
 *.sarif.raw
 scan-results/
+internal/scan-results/
+
+# ── Local env overrides (may contain real secrets) ───────────────────────────
+.env.local
+pursh/frontend/.env.local
+pursh/backend/.env.local
+internal/aisec/dashboard/.env.local
 
 # ── Downloaded scanner binaries (use CI-installed versions) ──────────────────
-scanners/gitleaks-bin/
-scanners/grype-bin/
-scanners/*.zip
+internal/scanners/gitleaks-bin/
+internal/scanners/grype-bin/
+internal/scanners/*.zip
 
 # ── Local dev overrides ───────────────────────────────────────────────────────
 docker-compose.override.yml

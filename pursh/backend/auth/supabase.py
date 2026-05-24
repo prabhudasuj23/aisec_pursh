@@ -25,8 +25,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-from pursh.backend.core.config import PurshSettings, get_settings
-from pursh.backend.core.logging import get_logger, hash_patient_id
+from core.config import PurshSettings, get_settings
+from core.logging import get_logger, hash_patient_id
 
 logger = get_logger(__name__)
 _bearer = HTTPBearer(auto_error=False)

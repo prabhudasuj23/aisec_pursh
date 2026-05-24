@@ -13,7 +13,7 @@ requires-python = ">=3.12"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-src = ["aisec/app", "pursh/backend"]
+src = ["internal/aisec/app", "pursh/backend"]
 
 [tool.ruff.lint]
 select = [
@@ -68,7 +68,7 @@ ignore_missing_imports = true
 # ── Pytest ────────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["aisec/app/tests", "pursh/backend/tests"]
+testpaths = ["internal/aisec/app/tests", "pursh/backend/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

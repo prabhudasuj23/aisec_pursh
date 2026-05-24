@@ -41,11 +41,11 @@ jobs:
           cache: pip
 
       - name: Install AISec dependencies
-        run: pip install -r aisec/requirements.txt
+        run: pip install -r internal/aisec/requirements.txt
 
-      - name: Run tests with coverage
+      - name: Run AISec tests with coverage
         run: |
-          cd aisec
+          cd internal/aisec
           python -m pytest app/tests/ -v --tb=short \
             --cov=app \
             --cov-report=term-missing \
@@ -57,12 +57,25 @@ jobs:
           SUPABASE_JWT_SECRET: placeholder-32-chars-minimum-here
           DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
 
+      - name: Install Pursh backend dependencies
+        run: pip install -r pursh/backend/requirements.txt
+
+      - name: Run Pursh backend tests
+        run: |
+          cd pursh/backend
+          python -m pytest tests/ -v --tb=short
+        env:
+          PURSH_SUPABASE_URL: https://placeholder.supabase.co
+          PURSH_SUPABASE_ANON_KEY: placeholder
+          PURSH_SUPABASE_SERVICE_ROLE_KEY: placeholder
+          PURSH_DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: aisec-coverage
-          path: aisec/coverage.xml
+          path: internal/aisec/coverage.xml
           retention-days: 30
 
   # ────────────────────────────────────────────────────────────────────────────
@@ -81,7 +94,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
-          scan-ref: aisec/
+          scan-ref: internal/aisec/
           format: sarif
           output: trivy-aisec-sca.sarif
           severity: CRITICAL
@@ -166,7 +179,7 @@ jobs:
             --output semgrep-aisec.sarif \
             --error \
             --timeout 300 \
-            aisec/ || EXIT=$?
+            internal/aisec/ || EXIT=$?
           if [ "${EXIT:-0}" -gt 1 ]; then exit "${EXIT}"; fi
 
       - name: Upload Semgrep SARIFs to Security tab
@@ -217,7 +230,7 @@ jobs:
       - name: Checkov IaC scan
         uses: bridgecrewio/checkov-action@v12
         with:
-          directory: infra/terraform
+          directory: internal/infra/terraform
           framework: terraform
           output_format: sarif
           output_file_path: checkov.sarif
@@ -249,18 +262,18 @@ jobs:
 
       - name: Terraform init + validate (aisec)
         run: |
-          cd infra/terraform/aisec
+          cd internal/infra/terraform/aisec
           terraform init -backend=false
           terraform validate
 
       - name: Terraform init + validate (pursh)
         run: |
-          cd infra/terraform/pursh
+          cd internal/infra/terraform/pursh
           terraform init -backend=false
           terraform validate
 
       - name: Terraform fmt check
-        run: terraform fmt -check -recursive infra/
+        run: terraform fmt -check -recursive internal/infra/
 
   # ────────────────────────────────────────────────────────────────────────────
   # Stage 7 — Build Docker images + push to GHCR
@@ -305,8 +318,8 @@ jobs:
         id: push-aisec
         uses: docker/build-push-action@v5
         with:
-          context: aisec/
-          file: aisec/Dockerfile
+          context: internal/aisec/
+          file: internal/aisec/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta-aisec.outputs.tags }}
@@ -360,8 +373,8 @@ jobs:
       - name: Build AISec image for scan
         uses: docker/build-push-action@v5
         with:
-          context: aisec/
-          file: aisec/Dockerfile
+          context: internal/aisec/
+          file: internal/aisec/Dockerfile
           push: false
           load: true
           tags: aisec:scan
@@ -431,8 +444,8 @@ jobs:
       - name: Build AISec image for smoke test
         uses: docker/build-push-action@v5
         with:
-          context: aisec/
-          file: aisec/Dockerfile
+          context: internal/aisec/
+          file: internal/aisec/Dockerfile
           push: false
           load: true
           tags: aisec:smoke
@@ -449,7 +462,7 @@ jobs:
           cache-from: type=gha
 
       - name: Smoke test — AISec (/healthz on port 8000)
-        run: ./demo/smoke-test.sh aisec:smoke 8000
+        run: ./internal/demo/smoke-test.sh aisec:smoke 8000
 
       - name: Smoke test — Pursh backend (/healthz on port 8001)
-        run: ./demo/smoke-test.sh pursh-backend:smoke 8001
+        run: ./internal/demo/smoke-test.sh pursh-backend:smoke 8001

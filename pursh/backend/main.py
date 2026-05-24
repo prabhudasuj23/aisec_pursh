@@ -12,9 +12,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from pursh.backend.api import patients, doctors, appointments, symptoms
-from pursh.backend.core.config import get_settings
-from pursh.backend.core.logging import CorrelationIdMiddleware, configure_logging
+from api import patients, doctors, appointments, symptoms
+from core.config import get_settings
+from core.logging import CorrelationIdMiddleware, configure_logging
 
 
 DISCLAIMER = (
@@ -59,3 +59,8 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.get("/healthz", include_in_schema=False)
+async def healthz() -> dict:
+    return {"status": "ok", "service": "pursh"}

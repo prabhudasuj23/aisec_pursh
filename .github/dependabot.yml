@@ -3,7 +3,7 @@ version: 2
 updates:
   # ── AISec Python backend ─────────────────────────────────────────────────────
   - package-ecosystem: "pip"
-    directory: "/aisec"
+    directory: "/internal/aisec"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
@@ -36,7 +36,7 @@ updates:
 
   # ── AISec dashboard (Next.js) ─────────────────────────────────────────────────
   - package-ecosystem: "npm"
-    directory: "/aisec/dashboard"
+    directory: "/internal/aisec/dashboard"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10

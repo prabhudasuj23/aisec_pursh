@@ -11,8 +11,8 @@ DISCLAIMER: Synthetic data only. Not a real medical service.
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from pursh.backend.auth.supabase import PurshUser, require_doctor, require_pursh_user
-from pursh.backend.core.logging import get_logger, hash_patient_id
+from auth.supabase import PurshUser, require_doctor, require_pursh_user
+from core.logging import get_logger, hash_patient_id
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/doctors", tags=["doctors"])

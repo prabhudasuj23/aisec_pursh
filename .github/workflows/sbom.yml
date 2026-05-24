@@ -53,7 +53,7 @@ jobs:
       - name: Generate AISec SBOM
         uses: ./.github/actions/syft
         with:
-          target-dir: aisec/
+          target-dir: internal/aisec/
           cyclonedx-output: aisec.cyclonedx.json
           spdx-output: aisec.spdx.json
 
