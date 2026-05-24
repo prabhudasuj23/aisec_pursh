@@ -1,6 +1,4 @@
 pipeline {
-  // ── Agent ─────────────────────────────────────────────────────────────────
-  // Change to: agent { label 'build-agent' } once agent label is confirmed.
   agent any
 
   options {
@@ -11,20 +9,20 @@ pipeline {
   }
 
   environment {
-    ZAP_IMAGE     = 'ghcr.io/zaproxy/zaproxy:stable'
-    COMPOSE_FILE  = 'thirdparty_app_scan/docker-compose.yml'
-    ZAP_CONF_DIR  = 'thirdparty_app_scan/zap'
+    ZAP_IMAGE    = 'ghcr.io/zaproxy/zaproxy:stable'
+    ZAP_CONF_DIR = 'thirdparty_app_scan/zap'
+    VULN_NETWORK = 'vuln-net'
   }
 
-  // ── NOTE ───────────────────────────────────────────────────────────────────
-  // There is NO Security Gate in this pipeline.
-  // Juice Shop, DVWA, and WebGoat are intentionally vulnerable.
-  // Findings are EXPECTED — they are archived for learning, not blocked.
-  // ──────────────────────────────────────────────────────────────────────────
+  // ── NOTE ─────────────────────────────────────────────────────────────────────
+  // No Security Gate — these apps are intentionally vulnerable.
+  // Findings are EXPECTED and archived for learning, not blocked.
+  // ZAP uses a Docker bridge network (vuln-net) to reach containers by name.
+  // ─────────────────────────────────────────────────────────────────────────────
 
   stages {
 
-    // ── Stage 1 — Checkout ──────────────────────────────────────────────────
+    // ── Stage 1 — Checkout ────────────────────────────────────────────────────
     stage('Checkout') {
       steps {
         checkout scm
@@ -32,8 +30,9 @@ pipeline {
       }
     }
 
-    // ── Stage 2 — Start Vulnerable Apps ─────────────────────────────────────
-    // Uses plain docker pull + docker run — no docker-compose required.
+    // ── Stage 2 — Start Vulnerable Apps ──────────────────────────────────────
+    // Creates a shared Docker bridge network so ZAP can reach containers by name.
+    // Health-polls each app via host-mapped ports before declaring ready.
     stage('Start Vulnerable Apps') {
       steps {
         sh '''
@@ -42,65 +41,86 @@ pipeline {
           docker pull vulnerables/web-dvwa:latest
           docker pull webgoat/webgoat:latest
 
-          # Remove any leftover containers from a previous run
+          # Clean up any leftovers from a previous run
           docker rm -f vuln-juice-shop vuln-dvwa vuln-webgoat 2>/dev/null || true
+          docker network rm ${VULN_NETWORK} 2>/dev/null || true
 
-          echo "Starting containers..."
-          docker run -d --name vuln-juice-shop -p 3000:3000 bkimminich/juice-shop:latest
-          docker run -d --name vuln-dvwa       -p 4280:80  vulnerables/web-dvwa:latest
-          docker run -d --name vuln-webgoat    -p 9090:8080 \
+          # Create isolated bridge network — ZAP joins this same network
+          docker network create ${VULN_NETWORK}
+
+          echo "Starting containers on network: ${VULN_NETWORK}..."
+          docker run -d \
+            --name vuln-juice-shop \
+            --network ${VULN_NETWORK} \
+            -p 3000:3000 \
+            bkimminich/juice-shop:latest
+
+          docker run -d \
+            --name vuln-dvwa \
+            --network ${VULN_NETWORK} \
+            -p 4280:80 \
+            vulnerables/web-dvwa:latest
+
+          docker run -d \
+            --name vuln-webgoat \
+            --network ${VULN_NETWORK} \
+            -p 9090:8080 \
             webgoat/webgoat:latest
 
-          # ── Wait for Juice Shop (port 3000) ─────────────────────────────
-          echo "Waiting for Juice Shop on :3000..."
+          # ── Wait for Juice Shop (host port 3000) ──────────────────────────
+          echo "Waiting for Juice Shop..."
           for i in $(seq 1 18); do
-            curl -sf http://localhost:3000 >/dev/null 2>&1 && echo "Juice Shop ready" && break
+            curl -sf http://localhost:3000 >/dev/null 2>&1 && echo "  Juice Shop ready" && break
             echo "  attempt $i/18 — sleeping 5s..."
             sleep 5
           done
 
-          # ── Wait for DVWA (port 4280) ────────────────────────────────────
-          echo "Waiting for DVWA on :4280..."
+          # ── Wait for DVWA (host port 4280) ────────────────────────────────
+          echo "Waiting for DVWA..."
           for i in $(seq 1 18); do
-            curl -sf http://localhost:4280 >/dev/null 2>&1 && echo "DVWA ready" && break
+            curl -sf http://localhost:4280 >/dev/null 2>&1 && echo "  DVWA ready" && break
             echo "  attempt $i/18 — sleeping 5s..."
             sleep 5
           done
 
-          # ── Wait for WebGoat (port 9090) ─────────────────────────────────
-          echo "Waiting for WebGoat on :9090..."
+          # ── Wait for WebGoat (host port 9090) ─────────────────────────────
+          echo "Waiting for WebGoat..."
           for i in $(seq 1 24); do
-            curl -sf http://localhost:9090/WebGoat >/dev/null 2>&1 && echo "WebGoat ready" && break
+            curl -sf http://localhost:9090/WebGoat >/dev/null 2>&1 && echo "  WebGoat ready" && break
             echo "  attempt $i/24 — sleeping 5s..."
             sleep 5
           done
 
-          echo "All apps started:"
+          echo ""
+          echo "Running containers:"
           docker ps --filter "name=vuln-"
+          echo ""
+          echo "Network members:"
+          docker network inspect ${VULN_NETWORK} --format '{{range .Containers}}  {{.Name}}{{println}}{{end}}'
         '''
       }
     }
 
-    // ── Stage 3 — ZAP Baseline: Juice Shop ──────────────────────────────────
-    // OWASP Juice Shop — node.js e-commerce app with 100+ intentional vulnerabilities.
-    // Common findings: XSS, CSRF, missing security headers, open redirects, JWT issues.
+    // ── Stage 3 — ZAP Baseline: Juice Shop ───────────────────────────────────
+    // ZAP joins vuln-net and targets vuln-juice-shop:3000 by container name.
+    // Findings: missing CSP, X-Frame-Options, HSTS, open redirects, JWT issues.
     stage('ZAP Baseline — Juice Shop') {
       steps {
         sh '''
-          echo "DAST: ZAP baseline scan against Juice Shop (http://localhost:3000)..."
+          echo "DAST: ZAP scanning Juice Shop via container network..."
           docker run --rm \
-            --network host \
+            --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
-              -t "http://localhost:3000" \
+              -t "http://vuln-juice-shop:3000" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/juice-shop.conf" \
               -J "/zap/wrk/juice-shop-zap.sarif" \
               -r "/zap/wrk/juice-shop-zap-report.html" \
               -I || true
 
           echo "Juice Shop ZAP scan complete."
-          ls -lh juice-shop-zap.sarif juice-shop-zap-report.html 2>/dev/null || true
+          ls -lh juice-shop-zap.sarif juice-shop-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
@@ -111,26 +131,26 @@ pipeline {
       }
     }
 
-    // ── Stage 4 — ZAP Baseline: DVWA ────────────────────────────────────────
-    // DVWA — PHP/MySQL app. Classic SQL injection, XSS, file upload, CSRF vulnerabilities.
-    // Security level defaults to "low" — all vulnerabilities active.
+    // ── Stage 4 — ZAP Baseline: DVWA ─────────────────────────────────────────
+    // ZAP targets vuln-dvwa:80 (internal port — not the host-mapped 4280).
+    // Findings: no CSRF tokens, weak auth headers, missing security headers.
     stage('ZAP Baseline — DVWA') {
       steps {
         sh '''
-          echo "DAST: ZAP baseline scan against DVWA (http://localhost:4280)..."
+          echo "DAST: ZAP scanning DVWA via container network..."
           docker run --rm \
-            --network host \
+            --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
-              -t "http://localhost:4280" \
+              -t "http://vuln-dvwa:80" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/dvwa.conf" \
               -J "/zap/wrk/dvwa-zap.sarif" \
               -r "/zap/wrk/dvwa-zap-report.html" \
               -I || true
 
           echo "DVWA ZAP scan complete."
-          ls -lh dvwa-zap.sarif dvwa-zap-report.html 2>/dev/null || true
+          ls -lh dvwa-zap.sarif dvwa-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
@@ -141,26 +161,26 @@ pipeline {
       }
     }
 
-    // ── Stage 5 — ZAP Baseline: WebGoat ─────────────────────────────────────
-    // WebGoat — Java/Spring app. Structured lessons around OWASP Top 10 weaknesses.
-    // Expect: injection, broken auth, insecure deserialization, XXE alerts.
+    // ── Stage 5 — ZAP Baseline: WebGoat ──────────────────────────────────────
+    // ZAP targets vuln-webgoat:8080 (internal port — not the host-mapped 9090).
+    // Findings: missing headers, session management issues, weak TLS config.
     stage('ZAP Baseline — WebGoat') {
       steps {
         sh '''
-          echo "DAST: ZAP baseline scan against WebGoat (http://localhost:8080/WebGoat)..."
+          echo "DAST: ZAP scanning WebGoat via container network..."
           docker run --rm \
-            --network host \
+            --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
-              -t "http://localhost:9090/WebGoat" \
+              -t "http://vuln-webgoat:8080/WebGoat" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/webgoat.conf" \
               -J "/zap/wrk/webgoat-zap.sarif" \
               -r "/zap/wrk/webgoat-zap-report.html" \
               -I || true
 
           echo "WebGoat ZAP scan complete."
-          ls -lh webgoat-zap.sarif webgoat-zap-report.html 2>/dev/null || true
+          ls -lh webgoat-zap.sarif webgoat-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
@@ -171,9 +191,9 @@ pipeline {
       }
     }
 
-    // ── Stage 6 — Trivy Image Scan ───────────────────────────────────────────
-    // Scans the Docker images themselves for OS and library CVEs.
-    // These images contain outdated packages by design — many findings expected.
+    // ── Stage 6 — Trivy Image Scan ────────────────────────────────────────────
+    // Scans Docker images for OS + library CVEs.
+    // Many findings expected — images are intentionally outdated.
     stage('Trivy Image Scan') {
       steps {
         sh '''
@@ -204,7 +224,7 @@ pipeline {
             --ignore-unfixed \
             webgoat/webgoat:latest 2>/dev/null || true
 
-          echo "Trivy image scans complete."
+          echo "Trivy scans complete:"
           ls -lh *-trivy-image.sarif 2>/dev/null || true
         '''
       }
@@ -215,16 +235,14 @@ pipeline {
       }
     }
 
-    // ── Stage 7 — Summary ────────────────────────────────────────────────────
-    // Counts findings per app for learning reference.
-    // No gate — this is purely informational.
+    // ── Stage 7 — Finding Summary ─────────────────────────────────────────────
     stage('Finding Summary') {
       steps {
         sh '''
           echo ""
-          echo "══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════════"
           echo "  VULN APP SCAN LAB — FINDING SUMMARY"
-          echo "══════════════════════════════════════════════════════"
+          echo "══════════════════════════════════════════════════════════"
           echo ""
 
           for sarif in juice-shop-zap.sarif dvwa-zap.sarif webgoat-zap.sarif \
@@ -238,10 +256,8 @@ pipeline {
           done
 
           echo ""
-          echo "All reports archived in Jenkins → Build Artifacts."
-          echo "Open the HTML reports to read full ZAP findings."
-          echo "Open SARIF files to study machine-readable structure."
-          echo "══════════════════════════════════════════════════════"
+          echo "  Artifacts tab: HTML reports for ZAP, SARIF files for all scanners."
+          echo "══════════════════════════════════════════════════════════"
         '''
       }
     }
@@ -250,21 +266,19 @@ pipeline {
 
   post {
     always {
-      // Stop and remove all vuln app containers — must run even if stages failed
       sh '''
-        echo "Stopping vulnerable app containers..."
+        echo "Cleaning up containers and network..."
         docker rm -f vuln-juice-shop vuln-dvwa vuln-webgoat 2>/dev/null || true
-        echo "Containers stopped."
+        docker network rm ${VULN_NETWORK} 2>/dev/null || true
+        echo "Cleanup done."
       '''
       cleanWs()
     }
-
     success {
-      echo "Vuln app scan lab complete. Check Build Artifacts for SARIF + HTML reports."
+      echo "Scan lab complete — check Build Artifacts for HTML + SARIF reports."
     }
-
     failure {
-      echo "Pipeline failed — check console. Containers cleaned up in post/always."
+      echo "Pipeline failed — containers and network cleaned up in post/always."
     }
   }
 }
