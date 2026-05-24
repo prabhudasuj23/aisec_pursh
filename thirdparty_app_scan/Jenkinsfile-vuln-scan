@@ -33,14 +33,24 @@ pipeline {
     }
 
     // ── Stage 2 — Start Vulnerable Apps ─────────────────────────────────────
-    // Pulls images and starts all 3 containers.
-    // Health-polls each one (90s timeout per app).
+    // Uses plain docker pull + docker run — no docker-compose required.
     stage('Start Vulnerable Apps') {
       steps {
         sh '''
-          echo "Pulling images and starting containers..."
-          docker-compose -f ${COMPOSE_FILE} pull --quiet
-          docker-compose -f ${COMPOSE_FILE} up -d
+          echo "Pulling images..."
+          docker pull bkimminich/juice-shop:latest
+          docker pull vulnerables/web-dvwa:latest
+          docker pull webgoat/webgoat:latest
+
+          # Remove any leftover containers from a previous run
+          docker rm -f vuln-juice-shop vuln-dvwa vuln-webgoat 2>/dev/null || true
+
+          echo "Starting containers..."
+          docker run -d --name vuln-juice-shop -p 3000:3000 bkimminich/juice-shop:latest
+          docker run -d --name vuln-dvwa       -p 4280:80  vulnerables/web-dvwa:latest
+          docker run -d --name vuln-webgoat    -p 8080:8080 \
+            -e WEBGOAT_PORT=8080 \
+            webgoat/webgoat:latest
 
           # ── Wait for Juice Shop (port 3000) ─────────────────────────────
           echo "Waiting for Juice Shop on :3000..."
@@ -66,7 +76,7 @@ pipeline {
             sleep 5
           done
 
-          echo "All apps started. Running containers:"
+          echo "All apps started:"
           docker ps --filter "name=vuln-"
         '''
       }
@@ -244,7 +254,7 @@ pipeline {
       // Stop and remove all vuln app containers — must run even if stages failed
       sh '''
         echo "Stopping vulnerable app containers..."
-        docker-compose -f ${COMPOSE_FILE} down --remove-orphans 2>/dev/null || true
+        docker rm -f vuln-juice-shop vuln-dvwa vuln-webgoat 2>/dev/null || true
         echo "Containers stopped."
       '''
       cleanWs()
