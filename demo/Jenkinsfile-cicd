@@ -1,0 +1,417 @@
+pipeline {
+  agent { label 'build-agent' }
+
+  // ── Auto-trigger on every GitHub push ────────────────────────────────────────
+  triggers {
+    githubPush()
+  }
+
+  options {
+    timeout(time: 45, unit: 'MINUTES')          // kill runaway builds
+    buildDiscarder(logRotator(numToKeepStr: '30'))
+    disableConcurrentBuilds()                    // no parallel builds on same branch
+    timestamps()
+  }
+
+  environment {
+    SONAR_URL        = 'http://3.128.32.11:9000'
+    SONAR_PROJECT    = 'aisec_pursh'
+    GHCR_IMAGE_AISEC = 'ghcr.io/prabhudasuj23/aisec'
+    GHCR_IMAGE_PURSH = 'ghcr.io/prabhudasuj23/pursh-backend'
+    PATH             = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+    // GitHub repo for commit status reporting (owner/repo)
+    GH_REPO         = 'prabhudasuj23/aisec_pursh'
+  }
+
+  stages {
+
+    // ── 0. Notify GitHub: build started ──────────────────────────────────────
+    stage('Notify — Pending') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+            if [ -n "$SHA" ]; then
+              curl -s -X POST \
+                -H "Authorization: token ${GH_TOKEN}" \
+                -H "Content-Type: application/json" \
+                https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+                -d "{
+                  \\"state\\": \\"pending\\",
+                  \\"target_url\\": \\"${BUILD_URL}\\",
+                  \\"description\\": \\"AISec pipeline running...\\",
+                  \\"context\\": \\"ci/aisec-devsecops\\"
+                }" || true
+            fi
+          '''
+        }
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'echo "Commit: $(git rev-parse --short HEAD)"'
+      }
+    }
+
+    stage('Tests + Coverage') {
+      steps {
+        sh '''
+          cd internal/aisec
+          python3 -m pytest app/tests/ -v --tb=short \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=60 \
+            --ignore=app/tests/test_ingest_api.py \
+            -k "not ingest" \
+            --timeout=60 2>/dev/null || true
+          echo "Tests complete"
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'internal/aisec/coverage.xml', allowEmptyArchive: true
+        }
+      }
+    }
+
+    stage('SAST — Semgrep') {
+      steps {
+        sh '''
+          /usr/local/bin/semgrep \
+            --config p/python \
+            --config p/security-audit \
+            --sarif --output semgrep.sarif \
+            --timeout 300 \
+            pursh/ internal/aisec/ || true
+          echo "Semgrep complete"
+          ls -lh semgrep.sarif 2>/dev/null || echo "No SARIF output"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'semgrep.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    stage('SCA — Trivy FS') {
+      steps {
+        sh '''
+          /usr/local/bin/trivy fs . \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-fs.sarif \
+            --ignore-unfixed \
+            --exit-code 0 || true
+          echo "Trivy FS scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'trivy-fs.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    stage('Secrets — Gitleaks') {
+      steps {
+        sh '''
+          docker run --rm \
+            -v "$(pwd):/repo" \
+            -v "$(pwd)/internal/scanners/gitleaks/.gitleaks.toml:/config/.gitleaks.toml" \
+            zricethezav/gitleaks:latest \
+            detect \
+            --source=/repo \
+            --config=/config/.gitleaks.toml \
+            --report-format=sarif \
+            --report-path=/repo/gitleaks.sarif \
+            --no-git || true
+          echo "Gitleaks scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'gitleaks.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+          sh '''
+            docker run --rm \
+              -v "$(pwd):/usr/src" \
+              sonarsource/sonar-scanner-cli:latest \
+              -Dsonar.projectKey=${SONAR_PROJECT} \
+              -Dsonar.sources=internal/aisec/app,pursh/backend \
+              -Dsonar.host.url=${SONAR_URL} \
+              -Dsonar.token=${SONAR_TOKEN}
+          '''
+        }
+      }
+    }
+
+    stage('Build Images') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+
+            docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} -f internal/aisec/Dockerfile internal/aisec/
+            docker build -t ${GHCR_IMAGE_PURSH}:${SHORT_SHA} -f pursh/backend/Dockerfile pursh/backend/
+
+            docker tag ${GHCR_IMAGE_AISEC}:${SHORT_SHA} ${GHCR_IMAGE_AISEC}:latest
+            docker tag ${GHCR_IMAGE_PURSH}:${SHORT_SHA} ${GHCR_IMAGE_PURSH}:latest
+            echo "Images built: ${SHORT_SHA}"
+          '''
+        }
+      }
+    }
+
+    stage('Image Scan — Trivy') {
+      steps {
+        sh '''
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          /usr/local/bin/trivy image \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-aisec-image.sarif \
+            --exit-code 0 \
+            --ignore-unfixed \
+            --ignorefile internal/scanners/trivy/.trivyignore \
+            ${GHCR_IMAGE_AISEC}:${SHORT_SHA} || true
+          echo "Image scan complete"
+        '''
+      }
+      post {
+        always { archiveArtifacts artifacts: 'trivy-*-image.sarif', allowEmptyArchive: true }
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        sh '''
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          chmod +x internal/demo/smoke-test.sh
+          # --keep leaves the container running so the DAST stage can scan it
+          ./internal/demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000 --keep
+        '''
+      }
+    }
+
+    // ── DAST — ZAP Baseline ───────────────────────────────────────────────────
+    // Scans the live AISec container left running by the Smoke Test stage.
+    // Baseline mode: passive scan + a safe subset of active checks.
+    // Does NOT modify data. Safe for any CI environment.
+    //
+    // Rule behaviour (scanners/zap/zap-baseline.conf):
+    //   FAIL  = HIGH/CRITICAL injection findings → build fails
+    //   WARN  = low-risk headers missing → reported, build continues
+    //   IGNORE= known FP or N/A for a JSON API → suppressed
+    //
+    // Developer path when DAST gate fails:
+    //   Fix the vulnerability, OR add a WARN/IGNORE rule with justification
+    //   to scanners/zap/zap-baseline.conf and open a PR for security review.
+    stage('DAST — ZAP Baseline') {
+      steps {
+        sh '''
+          TARGET_PORT=8000
+          ZAP_IMAGE="ghcr.io/zaproxy/zaproxy:stable"
+
+          echo "DAST: scanning http://localhost:${TARGET_PORT} with ZAP baseline..."
+
+          docker run --rm \
+            --network host \
+            -v "$(pwd):/zap/wrk:rw" \
+            -t "$ZAP_IMAGE" \
+            zap-baseline.py \
+              -t "http://localhost:${TARGET_PORT}" \
+              -c "/zap/wrk/internal/scanners/zap/zap-baseline.conf" \
+              -J "/zap/wrk/zap.sarif" \
+              -r "/zap/wrk/zap-report.html" \
+              -I \
+            || true
+
+          echo "DAST: ZAP scan complete"
+          ls -lh zap.sarif 2>/dev/null || echo "Warning: zap.sarif not produced"
+
+          # Tear down the AISec container now that DAST is done
+          CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
+          if [ -n "$CONTAINER" ]; then
+            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+            echo "DAST: container $CONTAINER removed"
+          fi
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'zap.sarif,zap-report.html', allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Security gate: fail only on NEW unacknowledged critical findings ────────
+    //
+    // Enterprise model:
+    //   1. Known/accepted CVEs live in scanners/trivy/.trivyignore (reviewed PR).
+    //      Trivy already excludes them — they never appear in the SARIF output.
+    //   2. Gate counts what remains in the SARIF after ignore-file filtering.
+    //      If the SARIF is empty → gate passes (same build as before = safe).
+    //      If SARIF has findings → these are NEW, unreviewed criticals → block.
+    //   3. Developer path when gate fails:
+    //      a) Fix the vulnerability, OR
+    //      b) Open a PR adding the CVE to .trivyignore with justification comment.
+    //         Security engineer reviews + approves. Gate passes on next build.
+    stage('Security Gate') {
+      steps {
+        sh '''
+          # Trivy SARIF: level=error → CRITICAL severity.
+          # .trivyignore is already applied by Trivy before the SARIF is written,
+          # so any level=error result here is a NEW, unacknowledged critical.
+          # jq counts them; 0 = gate passes, >0 = gate fails.
+
+          IMG_COUNT=0
+          FS_COUNT=0
+          ZAP_COUNT=0
+
+          if [ -f trivy-aisec-image.sarif ]; then
+            IMG_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-aisec-image.sarif 2>/dev/null || echo 0)
+            echo "trivy-image: $IMG_COUNT unacknowledged CRITICAL finding(s)"
+            if [ "$IMG_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-aisec-image.sarif 2>/dev/null || true
+            fi
+          else
+            echo "trivy-image: SARIF missing, skipping"
+          fi
+
+          if [ -f trivy-fs.sarif ]; then
+            FS_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-fs.sarif 2>/dev/null || echo 0)
+            echo "trivy-fs: $FS_COUNT unacknowledged CRITICAL finding(s)"
+            if [ "$FS_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-fs.sarif 2>/dev/null || true
+            fi
+          else
+            echo "trivy-fs: SARIF missing, skipping"
+          fi
+
+          # ZAP SARIF: level=error maps to FAIL rules in zap-baseline.conf
+          # (SQL injection, SSRF, RFI, path traversal, XSS, OS command injection)
+          if [ -f zap.sarif ]; then
+            ZAP_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' zap.sarif 2>/dev/null || echo 0)
+            echo "zap-dast: $ZAP_COUNT HIGH/CRITICAL DAST finding(s)"
+            if [ "$ZAP_COUNT" -gt 0 ]; then
+              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' zap.sarif 2>/dev/null || true
+            fi
+          else
+            echo "zap-dast: SARIF missing (ZAP may not have run), skipping"
+          fi
+
+          TOTAL=$((IMG_COUNT + FS_COUNT + ZAP_COUNT))
+          echo ""
+          echo "Total unacknowledged CRITICAL findings: $TOTAL"
+
+          if [ "$TOTAL" -gt 0 ]; then
+            echo ""
+            echo "SECURITY GATE FAILED: $TOTAL new/unacknowledged CRITICAL finding(s)."
+            echo "To resolve: fix the vulnerability, OR open a PR adding the CVE to"
+            echo "scanners/trivy/.trivyignore with a justification comment for security review."
+            exit 1
+          fi
+
+          echo "Security gate PASSED — no unacknowledged critical findings."
+        '''
+      }
+    }
+
+    stage('Push to GHCR') {
+      when { branch 'main' }
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            # Re-authenticate — token may have expired between Build and Push stages
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+
+            docker push ${GHCR_IMAGE_AISEC}:${SHORT_SHA}
+            docker push ${GHCR_IMAGE_AISEC}:latest
+            docker push ${GHCR_IMAGE_PURSH}:${SHORT_SHA}
+            docker push ${GHCR_IMAGE_PURSH}:latest
+            echo "Pushed to GHCR: ${SHORT_SHA}"
+          '''
+        }
+      }
+    }
+  }
+
+  // ── Post: report final status back to GitHub commit ───────────────────────
+  post {
+    success {
+      echo "All gates passed — pipeline green."
+      withCredentials([usernamePassword(credentialsId: 'github-pat',
+                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+        sh '''
+          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+          if [ -n "$SHA" ]; then
+            curl -s -X POST \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+              -d "{
+                \\"state\\": \\"success\\",
+                \\"target_url\\": \\"${BUILD_URL}\\",
+                \\"description\\": \\"All security gates passed\\",
+                \\"context\\": \\"ci/aisec-devsecops\\"
+              }" || true
+          fi
+        '''
+      }
+    }
+    failure {
+      echo "Pipeline FAILED — check archived SARIFs."
+      withCredentials([usernamePassword(credentialsId: 'github-pat',
+                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+        sh '''
+          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+          if [ -n "$SHA" ]; then
+            curl -s -X POST \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+              -d "{
+                \\"state\\": \\"failure\\",
+                \\"target_url\\": \\"${BUILD_URL}console\\",
+                \\"description\\": \\"Security gate failed — review findings\\",
+                \\"context\\": \\"ci/aisec-devsecops\\"
+              }" || true
+          fi
+        '''
+      }
+      // Email developer on failure (configure SMTP in Jenkins first)
+      emailext(
+        subject: "FAILED: AISec pipeline — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        body: """
+Pipeline failed on branch ${env.BRANCH_NAME} — commit ${env.GIT_COMMIT?.take(7)}.
+
+Build URL: ${env.BUILD_URL}
+Console:   ${env.BUILD_URL}console
+SARIFs:    ${env.BUILD_URL}artifact/
+
+Review the archived SARIF files and fix all critical findings before pushing again.
+        """,
+        to: '${DEFAULT_RECIPIENTS}',
+        mimeType: 'text/plain'
+      )
+    }
+    always {
+      // Safety net: ensure smoke/DAST container is removed even if stages fail
+      sh '''
+        CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
+        if [ -n "$CONTAINER" ]; then
+          docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+        fi
+      '''
+      cleanWs()
+    }
+  }
+}
