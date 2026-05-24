@@ -17,7 +17,7 @@ jobs:
     name: SBOM + Grype — Pursh
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Generate Pursh SBOM
         uses: ./.github/actions/syft
@@ -48,7 +48,7 @@ jobs:
     name: SBOM + Grype — AISec (dogfooding)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Generate AISec SBOM
         uses: ./.github/actions/syft

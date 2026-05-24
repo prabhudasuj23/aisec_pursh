@@ -17,7 +17,7 @@ jobs:
     name: Trivy SCA — Pursh
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Trivy SCA on Pursh
         uses: ./.github/actions/trivy-fs
@@ -37,7 +37,7 @@ jobs:
     name: Trivy SCA — AISec (dogfooding)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Trivy SCA on AISec
         uses: ./.github/actions/trivy-fs
