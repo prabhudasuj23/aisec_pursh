@@ -1,0 +1,261 @@
+pipeline {
+  // ── Agent ─────────────────────────────────────────────────────────────────
+  // Change to: agent { label 'build-agent' } once agent label is confirmed.
+  agent any
+
+  options {
+    timeout(time: 60, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    disableConcurrentBuilds()
+    timestamps()
+  }
+
+  environment {
+    ZAP_IMAGE     = 'ghcr.io/zaproxy/zaproxy:stable'
+    COMPOSE_FILE  = 'thirdparty_app_scan/docker-compose.yml'
+    ZAP_CONF_DIR  = 'thirdparty_app_scan/zap'
+  }
+
+  // ── NOTE ───────────────────────────────────────────────────────────────────
+  // There is NO Security Gate in this pipeline.
+  // Juice Shop, DVWA, and WebGoat are intentionally vulnerable.
+  // Findings are EXPECTED — they are archived for learning, not blocked.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  stages {
+
+    // ── Stage 1 — Checkout ──────────────────────────────────────────────────
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'echo "Commit: $(git rev-parse --short HEAD)"'
+      }
+    }
+
+    // ── Stage 2 — Start Vulnerable Apps ─────────────────────────────────────
+    // Pulls images and starts all 3 containers.
+    // Health-polls each one (90s timeout per app).
+    stage('Start Vulnerable Apps') {
+      steps {
+        sh '''
+          echo "Pulling images and starting containers..."
+          docker compose -f ${COMPOSE_FILE} pull --quiet
+          docker compose -f ${COMPOSE_FILE} up -d
+
+          # ── Wait for Juice Shop (port 3000) ─────────────────────────────
+          echo "Waiting for Juice Shop on :3000..."
+          for i in $(seq 1 18); do
+            curl -sf http://localhost:3000 >/dev/null 2>&1 && echo "Juice Shop ready" && break
+            echo "  attempt $i/18 — sleeping 5s..."
+            sleep 5
+          done
+
+          # ── Wait for DVWA (port 4280) ────────────────────────────────────
+          echo "Waiting for DVWA on :4280..."
+          for i in $(seq 1 18); do
+            curl -sf http://localhost:4280 >/dev/null 2>&1 && echo "DVWA ready" && break
+            echo "  attempt $i/18 — sleeping 5s..."
+            sleep 5
+          done
+
+          # ── Wait for WebGoat (port 8080) ─────────────────────────────────
+          echo "Waiting for WebGoat on :8080..."
+          for i in $(seq 1 24); do
+            curl -sf http://localhost:8080/WebGoat >/dev/null 2>&1 && echo "WebGoat ready" && break
+            echo "  attempt $i/24 — sleeping 5s..."
+            sleep 5
+          done
+
+          echo "All apps started. Running containers:"
+          docker ps --filter "name=vuln-"
+        '''
+      }
+    }
+
+    // ── Stage 3 — ZAP Baseline: Juice Shop ──────────────────────────────────
+    // OWASP Juice Shop — node.js e-commerce app with 100+ intentional vulnerabilities.
+    // Common findings: XSS, CSRF, missing security headers, open redirects, JWT issues.
+    stage('ZAP Baseline — Juice Shop') {
+      steps {
+        sh '''
+          echo "DAST: ZAP baseline scan against Juice Shop (http://localhost:3000)..."
+          docker run --rm \
+            --network host \
+            -v "$(pwd):/zap/wrk:rw" \
+            -t "${ZAP_IMAGE}" \
+            zap-baseline.py \
+              -t "http://localhost:3000" \
+              -c "/zap/wrk/${ZAP_CONF_DIR}/juice-shop.conf" \
+              -J "/zap/wrk/juice-shop-zap.sarif" \
+              -r "/zap/wrk/juice-shop-zap-report.html" \
+              -I || true
+
+          echo "Juice Shop ZAP scan complete."
+          ls -lh juice-shop-zap.sarif juice-shop-zap-report.html 2>/dev/null || true
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'juice-shop-zap.sarif,juice-shop-zap-report.html',
+                           allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Stage 4 — ZAP Baseline: DVWA ────────────────────────────────────────
+    // DVWA — PHP/MySQL app. Classic SQL injection, XSS, file upload, CSRF vulnerabilities.
+    // Security level defaults to "low" — all vulnerabilities active.
+    stage('ZAP Baseline — DVWA') {
+      steps {
+        sh '''
+          echo "DAST: ZAP baseline scan against DVWA (http://localhost:4280)..."
+          docker run --rm \
+            --network host \
+            -v "$(pwd):/zap/wrk:rw" \
+            -t "${ZAP_IMAGE}" \
+            zap-baseline.py \
+              -t "http://localhost:4280" \
+              -c "/zap/wrk/${ZAP_CONF_DIR}/dvwa.conf" \
+              -J "/zap/wrk/dvwa-zap.sarif" \
+              -r "/zap/wrk/dvwa-zap-report.html" \
+              -I || true
+
+          echo "DVWA ZAP scan complete."
+          ls -lh dvwa-zap.sarif dvwa-zap-report.html 2>/dev/null || true
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'dvwa-zap.sarif,dvwa-zap-report.html',
+                           allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Stage 5 — ZAP Baseline: WebGoat ─────────────────────────────────────
+    // WebGoat — Java/Spring app. Structured lessons around OWASP Top 10 weaknesses.
+    // Expect: injection, broken auth, insecure deserialization, XXE alerts.
+    stage('ZAP Baseline — WebGoat') {
+      steps {
+        sh '''
+          echo "DAST: ZAP baseline scan against WebGoat (http://localhost:8080/WebGoat)..."
+          docker run --rm \
+            --network host \
+            -v "$(pwd):/zap/wrk:rw" \
+            -t "${ZAP_IMAGE}" \
+            zap-baseline.py \
+              -t "http://localhost:8080/WebGoat" \
+              -c "/zap/wrk/${ZAP_CONF_DIR}/webgoat.conf" \
+              -J "/zap/wrk/webgoat-zap.sarif" \
+              -r "/zap/wrk/webgoat-zap-report.html" \
+              -I || true
+
+          echo "WebGoat ZAP scan complete."
+          ls -lh webgoat-zap.sarif webgoat-zap-report.html 2>/dev/null || true
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'webgoat-zap.sarif,webgoat-zap-report.html',
+                           allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Stage 6 — Trivy Image Scan ───────────────────────────────────────────
+    // Scans the Docker images themselves for OS and library CVEs.
+    // These images contain outdated packages by design — many findings expected.
+    stage('Trivy Image Scan') {
+      steps {
+        sh '''
+          echo "Trivy image scan: Juice Shop..."
+          /usr/local/bin/trivy image \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output juice-shop-trivy-image.sarif \
+            --exit-code 0 \
+            --ignore-unfixed \
+            bkimminich/juice-shop:latest 2>/dev/null || true
+
+          echo "Trivy image scan: DVWA..."
+          /usr/local/bin/trivy image \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output dvwa-trivy-image.sarif \
+            --exit-code 0 \
+            --ignore-unfixed \
+            vulnerables/web-dvwa:latest 2>/dev/null || true
+
+          echo "Trivy image scan: WebGoat..."
+          /usr/local/bin/trivy image \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output webgoat-trivy-image.sarif \
+            --exit-code 0 \
+            --ignore-unfixed \
+            webgoat/webgoat:latest 2>/dev/null || true
+
+          echo "Trivy image scans complete."
+          ls -lh *-trivy-image.sarif 2>/dev/null || true
+        '''
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: '*-trivy-image.sarif', allowEmptyArchive: true
+        }
+      }
+    }
+
+    // ── Stage 7 — Summary ────────────────────────────────────────────────────
+    // Counts findings per app for learning reference.
+    // No gate — this is purely informational.
+    stage('Finding Summary') {
+      steps {
+        sh '''
+          echo ""
+          echo "══════════════════════════════════════════════════════"
+          echo "  VULN APP SCAN LAB — FINDING SUMMARY"
+          echo "══════════════════════════════════════════════════════"
+          echo ""
+
+          for sarif in juice-shop-zap.sarif dvwa-zap.sarif webgoat-zap.sarif \
+                       juice-shop-trivy-image.sarif dvwa-trivy-image.sarif webgoat-trivy-image.sarif; do
+            if [ -f "$sarif" ]; then
+              COUNT=$(jq '[.runs[].results[]]|length' "$sarif" 2>/dev/null || echo "?")
+              echo "  $sarif  →  $COUNT finding(s)"
+            else
+              echo "  $sarif  →  (not generated)"
+            fi
+          done
+
+          echo ""
+          echo "All reports archived in Jenkins → Build Artifacts."
+          echo "Open the HTML reports to read full ZAP findings."
+          echo "Open SARIF files to study machine-readable structure."
+          echo "══════════════════════════════════════════════════════"
+        '''
+      }
+    }
+
+  } // end stages
+
+  post {
+    always {
+      // Stop and remove all vuln app containers — must run even if stages failed
+      sh '''
+        echo "Stopping vulnerable app containers..."
+        docker compose -f ${COMPOSE_FILE} down --remove-orphans 2>/dev/null || true
+        echo "Containers stopped."
+      '''
+      cleanWs()
+    }
+
+    success {
+      echo "Vuln app scan lab complete. Check Build Artifacts for SARIF + HTML reports."
+    }
+
+    failure {
+      echo "Pipeline failed — check console. Containers cleaned up in post/always."
+    }
+  }
+}

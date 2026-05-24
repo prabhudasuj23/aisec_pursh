@@ -1,0 +1,59 @@
+version: "3.8"
+
+# Intentionally vulnerable apps for security scanning practice.
+# Pull official Docker images — do NOT run in production.
+# All apps contain known vulnerabilities by design.
+
+networks:
+  vuln-net:
+    driver: bridge
+
+services:
+
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: vuln-juice-shop
+    ports:
+      - "3000:3000"
+    networks:
+      - vuln-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 9
+      start_period: 20s
+
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: vuln-dvwa
+    ports:
+      - "4280:80"
+    networks:
+      - vuln-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 9
+      start_period: 30s
+
+  webgoat:
+    image: webgoat/webgoat:latest
+    container_name: vuln-webgoat
+    ports:
+      - "8080:8080"
+    networks:
+      - vuln-net
+    restart: unless-stopped
+    environment:
+      - WEBGOAT_PORT=8080
+      - WEBWOLF_PORT=9090
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/WebGoat"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
