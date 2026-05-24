@@ -103,7 +103,7 @@ jobs:
 
       - name: Upload AISec SCA SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-aisec-sca.sarif
           category: trivy-aisec-sca
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload Pursh SCA SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-pursh-sca.sarif
           category: trivy-pursh-sca
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload Semgrep SARIFs to Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep-pursh.sarif
           category: semgrep-pursh
@@ -240,7 +240,7 @@ jobs:
 
       - name: Upload Checkov SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: checkov.sarif
           category: checkov-iac
@@ -412,7 +412,7 @@ jobs:
 
       - name: Upload image scan SARIFs
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-aisec-image.sarif
           category: trivy-aisec-image
