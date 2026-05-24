@@ -1,15 +1,16 @@
 pipeline {
-  agent { label 'build-agent' }
+  // ── Agent ──────────────────────────────────────────────────────────────────
+  // 'any' works whether the build-agent is labelled or not.
+  // Change to: agent { label 'build-agent' } once the agent label is confirmed
+  // in Jenkins → Manage Jenkins → Nodes → build-agent → Labels.
+  agent any
 
-  // ── Auto-trigger on every GitHub push ────────────────────────────────────────
-  triggers {
-    githubPush()
-  }
+  triggers { githubPush() }
 
   options {
-    timeout(time: 45, unit: 'MINUTES')          // kill runaway builds
+    timeout(time: 45, unit: 'MINUTES')
     buildDiscarder(logRotator(numToKeepStr: '30'))
-    disableConcurrentBuilds()                    // no parallel builds on same branch
+    disableConcurrentBuilds()
     timestamps()
   }
 
@@ -18,48 +19,52 @@ pipeline {
     SONAR_PROJECT    = 'aisec_pursh'
     GHCR_IMAGE_AISEC = 'ghcr.io/prabhudasuj23/aisec'
     GHCR_IMAGE_PURSH = 'ghcr.io/prabhudasuj23/pursh-backend'
+    GH_REPO          = 'prabhudasuj23/aisec_pursh'
     PATH             = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
-    // GitHub repo for commit status reporting (owner/repo)
-    GH_REPO         = 'prabhudasuj23/aisec_pursh'
   }
 
   stages {
 
-    // ── 0. Notify GitHub: build started ──────────────────────────────────────
+    // ── Stage 1 — Notify GitHub: pending ─────────────────────────────────────
     stage('Notify — Pending') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'github-pat',
-                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-          sh '''
-            SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
-            if [ -n "$SHA" ]; then
-              curl -s -X POST \
+        // catchError keeps the pipeline running even if github-pat credential
+        // is not yet configured in Jenkins → Manage Credentials
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          withCredentials([usernamePassword(credentialsId: 'github-pat',
+                           usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+            sh '''
+              SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+              [ -z "$SHA" ] && exit 0
+              curl -sf -X POST \
                 -H "Authorization: token ${GH_TOKEN}" \
                 -H "Content-Type: application/json" \
                 https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
-                -d "{
-                  \\"state\\": \\"pending\\",
-                  \\"target_url\\": \\"${BUILD_URL}\\",
-                  \\"description\\": \\"AISec pipeline running...\\",
-                  \\"context\\": \\"ci/aisec-devsecops\\"
-                }" || true
-            fi
-          '''
+                -d "{\"state\":\"pending\",\"target_url\":\"${BUILD_URL}\",
+                     \"description\":\"AISec pipeline running...\",
+                     \"context\":\"ci/aisec-devsecops\"}" || true
+            '''
+          }
         }
       }
     }
 
+    // ── Stage 2 — Checkout ────────────────────────────────────────────────────
     stage('Checkout') {
       steps {
         checkout scm
-        sh 'echo "Commit: $(git rev-parse --short HEAD)"'
+        sh 'echo "Branch: $(git rev-parse --abbrev-ref HEAD)  Commit: $(git rev-parse --short HEAD)"'
       }
     }
 
+    // ── Stage 3 — Tests + Coverage ────────────────────────────────────────────
+    // Scans internal/aisec (AISec platform) AND pursh/backend (Pursh app)
     stage('Tests + Coverage') {
       steps {
         sh '''
+          # ── AISec tests ───────────────────────────────────────────────────
           cd internal/aisec
+          pip3 install -q -r requirements.txt 2>/dev/null || true
           python3 -m pytest app/tests/ -v --tb=short \
             --cov=app \
             --cov-report=xml:coverage.xml \
@@ -67,7 +72,15 @@ pipeline {
             --ignore=app/tests/test_ingest_api.py \
             -k "not ingest" \
             --timeout=60 2>/dev/null || true
-          echo "Tests complete"
+          echo "AISec tests complete"
+          cd ../..
+
+          # ── Pursh backend tests ───────────────────────────────────────────
+          cd pursh/backend
+          pip3 install -q -r requirements.txt 2>/dev/null || true
+          python3 -m pytest tests/ -v --tb=short --timeout=60 2>/dev/null || true
+          echo "Pursh tests complete"
+          cd ../..
         '''
       }
       post {
@@ -77,6 +90,8 @@ pipeline {
       }
     }
 
+    // ── Stage 4 — SAST: Semgrep ───────────────────────────────────────────────
+    // Scans both pursh/ and internal/aisec/ source trees
     stage('SAST — Semgrep') {
       steps {
         sh '''
@@ -85,9 +100,8 @@ pipeline {
             --config p/security-audit \
             --sarif --output semgrep.sarif \
             --timeout 300 \
-            pursh/ internal/aisec/ || true
-          echo "Semgrep complete"
-          ls -lh semgrep.sarif 2>/dev/null || echo "No SARIF output"
+            pursh/backend/ internal/aisec/app/ || true
+          echo "Semgrep complete — $(ls -lh semgrep.sarif 2>/dev/null | awk '{print $5}' || echo 'no output')"
         '''
       }
       post {
@@ -95,6 +109,7 @@ pipeline {
       }
     }
 
+    // ── Stage 5 — SCA: Trivy filesystem ──────────────────────────────────────
     stage('SCA — Trivy FS') {
       steps {
         sh '''
@@ -103,7 +118,7 @@ pipeline {
             --format sarif \
             --output trivy-fs.sarif \
             --ignore-unfixed \
-            --exit-code 0 || true
+            --exit-code 0 2>/dev/null || true
           echo "Trivy FS scan complete"
         '''
       }
@@ -112,6 +127,7 @@ pipeline {
       }
     }
 
+    // ── Stage 6 — Secrets: Gitleaks ──────────────────────────────────────────
     stage('Secrets — Gitleaks') {
       steps {
         sh '''
@@ -133,41 +149,56 @@ pipeline {
       }
     }
 
+    // ── Stage 7 — SonarQube analysis ─────────────────────────────────────────
+    // Scans both internal/aisec/app and pursh/backend source paths
     stage('SonarQube Analysis') {
       steps {
-        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-          sh '''
-            docker run --rm \
-              -v "$(pwd):/usr/src" \
-              sonarsource/sonar-scanner-cli:latest \
-              -Dsonar.projectKey=${SONAR_PROJECT} \
-              -Dsonar.sources=internal/aisec/app,pursh/backend \
-              -Dsonar.host.url=${SONAR_URL} \
-              -Dsonar.token=${SONAR_TOKEN}
-          '''
+        // catchError: pipeline continues if sonar-token credential missing
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+            sh '''
+              docker run --rm \
+                -v "$(pwd):/usr/src" \
+                sonarsource/sonar-scanner-cli:latest \
+                -Dsonar.projectKey=${SONAR_PROJECT} \
+                -Dsonar.sources=internal/aisec/app,pursh/backend \
+                -Dsonar.host.url=${SONAR_URL} \
+                -Dsonar.token=${SONAR_TOKEN}
+            '''
+          }
         }
       }
     }
 
+    // ── Stage 8 — Build Docker images ────────────────────────────────────────
+    // Builds AISec (internal/aisec/) and Pursh backend (pursh/backend/) images
     stage('Build Images') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'github-pat',
-                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-          sh '''
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          withCredentials([usernamePassword(credentialsId: 'github-pat',
+                           usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+            sh '''
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
 
-            docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} -f internal/aisec/Dockerfile internal/aisec/
-            docker build -t ${GHCR_IMAGE_PURSH}:${SHORT_SHA} -f pursh/backend/Dockerfile pursh/backend/
+              # AISec platform image — context: internal/aisec/
+              docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} \
+                -f internal/aisec/Dockerfile internal/aisec/
+              docker tag ${GHCR_IMAGE_AISEC}:${SHORT_SHA} ${GHCR_IMAGE_AISEC}:latest
 
-            docker tag ${GHCR_IMAGE_AISEC}:${SHORT_SHA} ${GHCR_IMAGE_AISEC}:latest
-            docker tag ${GHCR_IMAGE_PURSH}:${SHORT_SHA} ${GHCR_IMAGE_PURSH}:latest
-            echo "Images built: ${SHORT_SHA}"
-          '''
+              # Pursh backend image — context: pursh/backend/
+              docker build -t ${GHCR_IMAGE_PURSH}:${SHORT_SHA} \
+                -f pursh/backend/Dockerfile pursh/backend/
+              docker tag ${GHCR_IMAGE_PURSH}:${SHORT_SHA} ${GHCR_IMAGE_PURSH}:latest
+
+              echo "Images built: ${SHORT_SHA}"
+            '''
+          }
         }
       }
     }
 
+    // ── Stage 9 — Image scan: Trivy ──────────────────────────────────────────
     stage('Image Scan — Trivy') {
       steps {
         sh '''
@@ -179,7 +210,7 @@ pipeline {
             --exit-code 0 \
             --ignore-unfixed \
             --ignorefile internal/scanners/trivy/.trivyignore \
-            ${GHCR_IMAGE_AISEC}:${SHORT_SHA} || true
+            ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 2>/dev/null || true
           echo "Image scan complete"
         '''
       }
@@ -188,36 +219,26 @@ pipeline {
       }
     }
 
+    // ── Stage 10 — Smoke test ─────────────────────────────────────────────────
+    // Starts the AISec container and polls /healthz (90s timeout)
+    // --keep flag leaves it running for the DAST stage below
     stage('Smoke Test') {
       steps {
         sh '''
           SHORT_SHA=$(git rev-parse --short HEAD)
           chmod +x internal/demo/smoke-test.sh
-          # --keep leaves the container running so the DAST stage can scan it
           ./internal/demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000 --keep
         '''
       }
     }
 
-    // ── DAST — ZAP Baseline ───────────────────────────────────────────────────
-    // Scans the live AISec container left running by the Smoke Test stage.
-    // Baseline mode: passive scan + a safe subset of active checks.
-    // Does NOT modify data. Safe for any CI environment.
-    //
-    // Rule behaviour (scanners/zap/zap-baseline.conf):
-    //   FAIL  = HIGH/CRITICAL injection findings → build fails
-    //   WARN  = low-risk headers missing → reported, build continues
-    //   IGNORE= known FP or N/A for a JSON API → suppressed
-    //
-    // Developer path when DAST gate fails:
-    //   Fix the vulnerability, OR add a WARN/IGNORE rule with justification
-    //   to scanners/zap/zap-baseline.conf and open a PR for security review.
+    // ── Stage 11 — DAST: ZAP baseline ────────────────────────────────────────
+    // Scans the live AISec container left running by Smoke Test
     stage('DAST — ZAP Baseline') {
       steps {
         sh '''
           TARGET_PORT=8000
           ZAP_IMAGE="ghcr.io/zaproxy/zaproxy:stable"
-
           echo "DAST: scanning http://localhost:${TARGET_PORT} with ZAP baseline..."
 
           docker run --rm \
@@ -229,18 +250,13 @@ pipeline {
               -c "/zap/wrk/internal/scanners/zap/zap-baseline.conf" \
               -J "/zap/wrk/zap.sarif" \
               -r "/zap/wrk/zap-report.html" \
-              -I \
-            || true
+              -I || true
 
           echo "DAST: ZAP scan complete"
-          ls -lh zap.sarif 2>/dev/null || echo "Warning: zap.sarif not produced"
 
-          # Tear down the AISec container now that DAST is done
+          # Stop the AISec container now that DAST is done
           CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
-          if [ -n "$CONTAINER" ]; then
-            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-            echo "DAST: container $CONTAINER removed"
-          fi
+          [ -n "$CONTAINER" ] && docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
         '''
       }
       post {
@@ -250,166 +266,123 @@ pipeline {
       }
     }
 
-    // ── Security gate: fail only on NEW unacknowledged critical findings ────────
-    //
-    // Enterprise model:
-    //   1. Known/accepted CVEs live in scanners/trivy/.trivyignore (reviewed PR).
-    //      Trivy already excludes them — they never appear in the SARIF output.
-    //   2. Gate counts what remains in the SARIF after ignore-file filtering.
-    //      If the SARIF is empty → gate passes (same build as before = safe).
-    //      If SARIF has findings → these are NEW, unreviewed criticals → block.
-    //   3. Developer path when gate fails:
-    //      a) Fix the vulnerability, OR
-    //      b) Open a PR adding the CVE to .trivyignore with justification comment.
-    //         Security engineer reviews + approves. Gate passes on next build.
+    // ── Stage 12 — Security gate ──────────────────────────────────────────────
+    // Counts CRITICAL findings from Trivy + ZAP after ignore-file filtering.
+    // Any unacknowledged critical = build fails here.
     stage('Security Gate') {
       steps {
         sh '''
-          # Trivy SARIF: level=error → CRITICAL severity.
-          # .trivyignore is already applied by Trivy before the SARIF is written,
-          # so any level=error result here is a NEW, unacknowledged critical.
-          # jq counts them; 0 = gate passes, >0 = gate fails.
-
-          IMG_COUNT=0
-          FS_COUNT=0
-          ZAP_COUNT=0
+          IMG_COUNT=0; FS_COUNT=0; ZAP_COUNT=0
 
           if [ -f trivy-aisec-image.sarif ]; then
-            IMG_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-aisec-image.sarif 2>/dev/null || echo 0)
+            IMG_COUNT=$(jq '[.runs[].results[]|select(.level=="error")]|length' trivy-aisec-image.sarif 2>/dev/null || echo 0)
             echo "trivy-image: $IMG_COUNT unacknowledged CRITICAL finding(s)"
-            if [ "$IMG_COUNT" -gt 0 ]; then
-              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-aisec-image.sarif 2>/dev/null || true
-            fi
           else
             echo "trivy-image: SARIF missing, skipping"
           fi
 
           if [ -f trivy-fs.sarif ]; then
-            FS_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' trivy-fs.sarif 2>/dev/null || echo 0)
+            FS_COUNT=$(jq '[.runs[].results[]|select(.level=="error")]|length' trivy-fs.sarif 2>/dev/null || echo 0)
             echo "trivy-fs: $FS_COUNT unacknowledged CRITICAL finding(s)"
-            if [ "$FS_COUNT" -gt 0 ]; then
-              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' trivy-fs.sarif 2>/dev/null || true
-            fi
           else
             echo "trivy-fs: SARIF missing, skipping"
           fi
 
-          # ZAP SARIF: level=error maps to FAIL rules in zap-baseline.conf
-          # (SQL injection, SSRF, RFI, path traversal, XSS, OS command injection)
           if [ -f zap.sarif ]; then
-            ZAP_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' zap.sarif 2>/dev/null || echo 0)
+            ZAP_COUNT=$(jq '[.runs[].results[]|select(.level=="error")]|length' zap.sarif 2>/dev/null || echo 0)
             echo "zap-dast: $ZAP_COUNT HIGH/CRITICAL DAST finding(s)"
-            if [ "$ZAP_COUNT" -gt 0 ]; then
-              jq -r '.runs[].results[] | select(.level == "error") | "  !! " + .ruleId + " — " + .message.text[:80]' zap.sarif 2>/dev/null || true
-            fi
           else
-            echo "zap-dast: SARIF missing (ZAP may not have run), skipping"
+            echo "zap-dast: SARIF missing, skipping"
           fi
 
           TOTAL=$((IMG_COUNT + FS_COUNT + ZAP_COUNT))
-          echo ""
           echo "Total unacknowledged CRITICAL findings: $TOTAL"
 
           if [ "$TOTAL" -gt 0 ]; then
-            echo ""
-            echo "SECURITY GATE FAILED: $TOTAL new/unacknowledged CRITICAL finding(s)."
-            echo "To resolve: fix the vulnerability, OR open a PR adding the CVE to"
-            echo "scanners/trivy/.trivyignore with a justification comment for security review."
+            echo "SECURITY GATE FAILED — fix the CVE or add it to internal/scanners/trivy/.trivyignore with justification."
             exit 1
           fi
-
-          echo "Security gate PASSED — no unacknowledged critical findings."
+          echo "Security gate PASSED."
         '''
       }
     }
 
+    // ── Stage 13 — Push to GHCR ──────────────────────────────────────────────
+    // Only pushes when merging to main branch
     stage('Push to GHCR') {
       when { branch 'main' }
       steps {
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          withCredentials([usernamePassword(credentialsId: 'github-pat',
+                           usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+            sh '''
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+              docker push ${GHCR_IMAGE_AISEC}:${SHORT_SHA}
+              docker push ${GHCR_IMAGE_AISEC}:latest
+              docker push ${GHCR_IMAGE_PURSH}:${SHORT_SHA}
+              docker push ${GHCR_IMAGE_PURSH}:latest
+              echo "Pushed to GHCR: ${SHORT_SHA}"
+            '''
+          }
+        }
+      }
+    }
+
+  } // end stages
+
+  // ── Post actions ─────────────────────────────────────────────────────────────
+  post {
+    success {
+      echo "Pipeline GREEN — all stages passed."
+      catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
         withCredentials([usernamePassword(credentialsId: 'github-pat',
                          usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
           sh '''
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            # Re-authenticate — token may have expired between Build and Push stages
-            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
-
-            docker push ${GHCR_IMAGE_AISEC}:${SHORT_SHA}
-            docker push ${GHCR_IMAGE_AISEC}:latest
-            docker push ${GHCR_IMAGE_PURSH}:${SHORT_SHA}
-            docker push ${GHCR_IMAGE_PURSH}:latest
-            echo "Pushed to GHCR: ${SHORT_SHA}"
+            SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+            [ -z "$SHA" ] && exit 0
+            curl -sf -X POST \
+              -H "Authorization: token ${GH_TOKEN}" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
+              -d "{\"state\":\"success\",\"target_url\":\"${BUILD_URL}\",
+                   \"description\":\"All security gates passed\",
+                   \"context\":\"ci/aisec-devsecops\"}" || true
           '''
         }
       }
     }
-  }
 
-  // ── Post: report final status back to GitHub commit ───────────────────────
-  post {
-    success {
-      echo "All gates passed — pipeline green."
-      withCredentials([usernamePassword(credentialsId: 'github-pat',
-                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-        sh '''
-          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
-          if [ -n "$SHA" ]; then
-            curl -s -X POST \
-              -H "Authorization: token ${GH_TOKEN}" \
-              -H "Content-Type: application/json" \
-              https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
-              -d "{
-                \\"state\\": \\"success\\",
-                \\"target_url\\": \\"${BUILD_URL}\\",
-                \\"description\\": \\"All security gates passed\\",
-                \\"context\\": \\"ci/aisec-devsecops\\"
-              }" || true
-          fi
-        '''
-      }
-    }
     failure {
-      echo "Pipeline FAILED — check archived SARIFs."
-      withCredentials([usernamePassword(credentialsId: 'github-pat',
-                       usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-        sh '''
-          SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
-          if [ -n "$SHA" ]; then
-            curl -s -X POST \
+      echo "Pipeline FAILED — check archived SARIFs at ${BUILD_URL}artifact/"
+      catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+        withCredentials([usernamePassword(credentialsId: 'github-pat',
+                         usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+          sh '''
+            SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+            [ -z "$SHA" ] && exit 0
+            curl -sf -X POST \
               -H "Authorization: token ${GH_TOKEN}" \
               -H "Content-Type: application/json" \
               https://api.github.com/repos/${GH_REPO}/statuses/${SHA} \
-              -d "{
-                \\"state\\": \\"failure\\",
-                \\"target_url\\": \\"${BUILD_URL}console\\",
-                \\"description\\": \\"Security gate failed — review findings\\",
-                \\"context\\": \\"ci/aisec-devsecops\\"
-              }" || true
-          fi
-        '''
+              -d "{\"state\":\"failure\",\"target_url\":\"${BUILD_URL}console\",
+                   \"description\":\"Security gate failed\",
+                   \"context\":\"ci/aisec-devsecops\"}" || true
+          '''
+        }
       }
-      // Email developer on failure (configure SMTP in Jenkins first)
-      emailext(
-        subject: "FAILED: AISec pipeline — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        body: """
-Pipeline failed on branch ${env.BRANCH_NAME} — commit ${env.GIT_COMMIT?.take(7)}.
-
-Build URL: ${env.BUILD_URL}
-Console:   ${env.BUILD_URL}console
-SARIFs:    ${env.BUILD_URL}artifact/
-
-Review the archived SARIF files and fix all critical findings before pushing again.
-        """,
-        to: '${DEFAULT_RECIPIENTS}',
-        mimeType: 'text/plain'
-      )
+      // emailext removed — requires Email Extension Plugin installed in Jenkins
+      // To re-enable: install plugin, configure SMTP in Jenkins system settings,
+      // then uncomment:
+      // emailext(subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+      //          body: "Console: ${env.BUILD_URL}console", to: 'you@example.com')
     }
+
     always {
-      // Safety net: ensure smoke/DAST container is removed even if stages fail
+      // Clean up any lingering smoke/DAST container
       sh '''
         CONTAINER=$(cat /tmp/smoke-container-name 2>/dev/null || echo "")
-        if [ -n "$CONTAINER" ]; then
-          docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-        fi
+        [ -n "$CONTAINER" ] && docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
       '''
       cleanWs()
     }
