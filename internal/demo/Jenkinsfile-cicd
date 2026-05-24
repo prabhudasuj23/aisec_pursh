@@ -14,7 +14,7 @@ pipeline {
   }
 
   environment {
-    SONAR_URL        = 'http://3.14.146.228:9000'
+    SONAR_URL        = 'http://3.128.32.11:9000'
     SONAR_PROJECT    = 'aisec_pursh'
     GHCR_IMAGE_AISEC = 'ghcr.io/prabhudasuj23/aisec'
     GHCR_IMAGE_PURSH = 'ghcr.io/prabhudasuj23/pursh-backend'
@@ -59,7 +59,7 @@ pipeline {
     stage('Tests + Coverage') {
       steps {
         sh '''
-          cd aisec
+          cd internal/aisec
           python3 -m pytest app/tests/ -v --tb=short \
             --cov=app \
             --cov-report=xml:coverage.xml \
@@ -72,7 +72,7 @@ pipeline {
       }
       post {
         always {
-          archiveArtifacts artifacts: 'aisec/coverage.xml', allowEmptyArchive: true
+          archiveArtifacts artifacts: 'internal/aisec/coverage.xml', allowEmptyArchive: true
         }
       }
     }
@@ -85,7 +85,7 @@ pipeline {
             --config p/security-audit \
             --sarif --output semgrep.sarif \
             --timeout 300 \
-            pursh/ aisec/ || true
+            pursh/ internal/aisec/ || true
           echo "Semgrep complete"
           ls -lh semgrep.sarif 2>/dev/null || echo "No SARIF output"
         '''
@@ -117,7 +117,7 @@ pipeline {
         sh '''
           docker run --rm \
             -v "$(pwd):/repo" \
-            -v "$(pwd)/scanners/gitleaks/.gitleaks.toml:/config/.gitleaks.toml" \
+            -v "$(pwd)/internal/scanners/gitleaks/.gitleaks.toml:/config/.gitleaks.toml" \
             zricethezav/gitleaks:latest \
             detect \
             --source=/repo \
@@ -141,7 +141,7 @@ pipeline {
               -v "$(pwd):/usr/src" \
               sonarsource/sonar-scanner-cli:latest \
               -Dsonar.projectKey=${SONAR_PROJECT} \
-              -Dsonar.sources=aisec/app,pursh/backend \
+              -Dsonar.sources=internal/aisec/app,pursh/backend \
               -Dsonar.host.url=${SONAR_URL} \
               -Dsonar.token=${SONAR_TOKEN}
           '''
@@ -157,7 +157,7 @@ pipeline {
             SHORT_SHA=$(git rev-parse --short HEAD)
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
 
-            docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} -f aisec/Dockerfile aisec/
+            docker build -t ${GHCR_IMAGE_AISEC}:${SHORT_SHA} -f internal/aisec/Dockerfile internal/aisec/
             docker build -t ${GHCR_IMAGE_PURSH}:${SHORT_SHA} -f pursh/backend/Dockerfile pursh/backend/
 
             docker tag ${GHCR_IMAGE_AISEC}:${SHORT_SHA} ${GHCR_IMAGE_AISEC}:latest
@@ -178,7 +178,7 @@ pipeline {
             --output trivy-aisec-image.sarif \
             --exit-code 0 \
             --ignore-unfixed \
-            --ignorefile scanners/trivy/.trivyignore \
+            --ignorefile internal/scanners/trivy/.trivyignore \
             ${GHCR_IMAGE_AISEC}:${SHORT_SHA} || true
           echo "Image scan complete"
         '''
@@ -192,9 +192,9 @@ pipeline {
       steps {
         sh '''
           SHORT_SHA=$(git rev-parse --short HEAD)
-          chmod +x demo/smoke-test.sh
+          chmod +x internal/demo/smoke-test.sh
           # --keep leaves the container running so the DAST stage can scan it
-          ./demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000 --keep
+          ./internal/demo/smoke-test.sh ${GHCR_IMAGE_AISEC}:${SHORT_SHA} 8000 --keep
         '''
       }
     }
@@ -226,7 +226,7 @@ pipeline {
             -t "$ZAP_IMAGE" \
             zap-baseline.py \
               -t "http://localhost:${TARGET_PORT}" \
-              -c "/zap/wrk/scanners/zap/zap-baseline.conf" \
+              -c "/zap/wrk/internal/scanners/zap/zap-baseline.conf" \
               -J "/zap/wrk/zap.sarif" \
               -r "/zap/wrk/zap-report.html" \
               -I \

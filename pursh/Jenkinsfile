@@ -17,7 +17,7 @@ pipeline {
     }
     stage('SCA — Trivy (pursh/ only)') {
       steps {
-        sh 'trivy fs pursh/ --format json --severity CRITICAL,HIGH --output internal/scan-results/trivy-pursh-sca.json --exit-code 1 --ignore-unfixed'
+        sh 'trivy fs pursh/ --format json --severity CRITICAL,HIGH --output trivy-pursh-sca.json --exit-code 1 --ignore-unfixed'
       }
     }
     stage('SAST — Semgrep (pursh/ only)') {
@@ -34,7 +34,7 @@ pipeline {
           --source pursh/ \
           --config internal/scanners/gitleaks/.gitleaks.toml \
           --report-format json \
-          --report-path internal/scan-results/gitleaks-clean.json \
+          --report-path gitleaks-pursh.json \
           --no-git'''
       }
     }
