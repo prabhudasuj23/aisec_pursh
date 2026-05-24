@@ -18,7 +18,7 @@ jobs:
     name: Semgrep — Pursh (scan target)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Semgrep SAST on Pursh
         uses: ./.github/actions/semgrep   # local composite (symlinked from pipelines/)
@@ -52,7 +52,7 @@ jobs:
     name: Semgrep — AISec (dogfooding)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Semgrep SAST on AISec (eat your own dog food)
         uses: returntocorp/semgrep-action@v1
