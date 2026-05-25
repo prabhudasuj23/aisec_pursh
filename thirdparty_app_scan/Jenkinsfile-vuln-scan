@@ -104,28 +104,33 @@ pipeline {
     // ── Stage 3 — ZAP Baseline: Juice Shop ───────────────────────────────────
     // ZAP joins vuln-net and targets vuln-juice-shop:3000 by container name.
     // Findings: missing CSP, X-Frame-Options, HSTS, open redirects, JWT issues.
+    // Note: -j for JSON (supported in all versions), -r for HTML, no -J (SARIF flag
+    // not available in zap-baseline.py stable — silently caused no output).
     stage('ZAP Baseline — Juice Shop') {
       steps {
         sh '''
           echo "DAST: ZAP scanning Juice Shop via container network..."
+          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
+            -u root \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
               -t "http://vuln-juice-shop:3000" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/juice-shop.conf" \
-              -J "/zap/wrk/juice-shop-zap.sarif" \
+              -j \
               -r "/zap/wrk/juice-shop-zap-report.html" \
-              -I || true
-
+              -I
+          ZAP_EXIT=$?
+          echo "ZAP exit code: ${ZAP_EXIT}"
           echo "Juice Shop ZAP scan complete."
-          ls -lh juice-shop-zap.sarif juice-shop-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
+          ls -lh juice-shop-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'juice-shop-zap.sarif,juice-shop-zap-report.html',
+          archiveArtifacts artifacts: 'juice-shop-zap-report.html',
                            allowEmptyArchive: true
         }
       }
@@ -138,24 +143,27 @@ pipeline {
       steps {
         sh '''
           echo "DAST: ZAP scanning DVWA via container network..."
+          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
+            -u root \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
               -t "http://vuln-dvwa:80" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/dvwa.conf" \
-              -J "/zap/wrk/dvwa-zap.sarif" \
+              -j \
               -r "/zap/wrk/dvwa-zap-report.html" \
-              -I || true
-
+              -I
+          ZAP_EXIT=$?
+          echo "ZAP exit code: ${ZAP_EXIT}"
           echo "DVWA ZAP scan complete."
-          ls -lh dvwa-zap.sarif dvwa-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
+          ls -lh dvwa-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'dvwa-zap.sarif,dvwa-zap-report.html',
+          archiveArtifacts artifacts: 'dvwa-zap-report.html',
                            allowEmptyArchive: true
         }
       }
@@ -168,24 +176,27 @@ pipeline {
       steps {
         sh '''
           echo "DAST: ZAP scanning WebGoat via container network..."
+          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
+            -u root \
             -t "${ZAP_IMAGE}" \
             zap-baseline.py \
               -t "http://vuln-webgoat:8080/WebGoat" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/webgoat.conf" \
-              -J "/zap/wrk/webgoat-zap.sarif" \
+              -j \
               -r "/zap/wrk/webgoat-zap-report.html" \
-              -I || true
-
+              -I
+          ZAP_EXIT=$?
+          echo "ZAP exit code: ${ZAP_EXIT}"
           echo "WebGoat ZAP scan complete."
-          ls -lh webgoat-zap.sarif webgoat-zap-report.html 2>/dev/null || echo "WARNING: output files not found"
+          ls -lh webgoat-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'webgoat-zap.sarif,webgoat-zap-report.html',
+          archiveArtifacts artifacts: 'webgoat-zap-report.html',
                            allowEmptyArchive: true
         }
       }
@@ -245,8 +256,19 @@ pipeline {
           echo "══════════════════════════════════════════════════════════"
           echo ""
 
-          for sarif in juice-shop-zap.sarif dvwa-zap.sarif webgoat-zap.sarif \
-                       juice-shop-trivy-image.sarif dvwa-trivy-image.sarif webgoat-trivy-image.sarif; do
+          echo "  ZAP HTML reports:"
+          for html in juice-shop-zap-report.html dvwa-zap-report.html webgoat-zap-report.html; do
+            if [ -f "$html" ]; then
+              SIZE=$(wc -c < "$html")
+              echo "  $html  →  ${SIZE} bytes"
+            else
+              echo "  $html  →  (not generated)"
+            fi
+          done
+
+          echo ""
+          echo "  Trivy SARIF files:"
+          for sarif in juice-shop-trivy-image.sarif dvwa-trivy-image.sarif webgoat-trivy-image.sarif; do
             if [ -f "$sarif" ]; then
               COUNT=$(jq '[.runs[].results[]]|length' "$sarif" 2>/dev/null || echo "?")
               echo "  $sarif  →  $COUNT finding(s)"
@@ -256,7 +278,7 @@ pipeline {
           done
 
           echo ""
-          echo "  Artifacts tab: HTML reports for ZAP, SARIF files for all scanners."
+          echo "  Artifacts tab: HTML reports for ZAP, SARIF files for Trivy."
           echo "══════════════════════════════════════════════════════════"
         '''
       }
