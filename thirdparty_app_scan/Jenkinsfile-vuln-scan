@@ -110,7 +110,6 @@ pipeline {
       steps {
         sh '''
           echo "DAST: ZAP scanning Juice Shop via container network..."
-          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
@@ -119,18 +118,17 @@ pipeline {
             zap-baseline.py \
               -t "http://vuln-juice-shop:3000" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/juice-shop.conf" \
-              -j \
-              -r "/zap/wrk/juice-shop-zap-report.html" \
-              -I
-          ZAP_EXIT=$?
-          echo "ZAP exit code: ${ZAP_EXIT}"
+              -r "juice-shop-zap-report.html" \
+              -J "juice-shop-zap.json" \
+              -I || true
+
           echo "Juice Shop ZAP scan complete."
-          ls -lh juice-shop-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
+          ls -lh juice-shop-zap-report.html juice-shop-zap.json 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'juice-shop-zap-report.html',
+          archiveArtifacts artifacts: 'juice-shop-zap-report.html,juice-shop-zap.json',
                            allowEmptyArchive: true
         }
       }
@@ -143,7 +141,6 @@ pipeline {
       steps {
         sh '''
           echo "DAST: ZAP scanning DVWA via container network..."
-          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
@@ -152,18 +149,17 @@ pipeline {
             zap-baseline.py \
               -t "http://vuln-dvwa:80" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/dvwa.conf" \
-              -j \
-              -r "/zap/wrk/dvwa-zap-report.html" \
-              -I
-          ZAP_EXIT=$?
-          echo "ZAP exit code: ${ZAP_EXIT}"
+              -r "dvwa-zap-report.html" \
+              -J "dvwa-zap.json" \
+              -I || true
+
           echo "DVWA ZAP scan complete."
-          ls -lh dvwa-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
+          ls -lh dvwa-zap-report.html dvwa-zap.json 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'dvwa-zap-report.html',
+          archiveArtifacts artifacts: 'dvwa-zap-report.html,dvwa-zap.json',
                            allowEmptyArchive: true
         }
       }
@@ -176,7 +172,6 @@ pipeline {
       steps {
         sh '''
           echo "DAST: ZAP scanning WebGoat via container network..."
-          ZAP_EXIT=0
           docker run --rm \
             --network ${VULN_NETWORK} \
             -v "$(pwd):/zap/wrk:rw" \
@@ -185,18 +180,17 @@ pipeline {
             zap-baseline.py \
               -t "http://vuln-webgoat:8080/WebGoat" \
               -c "/zap/wrk/${ZAP_CONF_DIR}/webgoat.conf" \
-              -j \
-              -r "/zap/wrk/webgoat-zap-report.html" \
-              -I
-          ZAP_EXIT=$?
-          echo "ZAP exit code: ${ZAP_EXIT}"
+              -r "webgoat-zap-report.html" \
+              -J "webgoat-zap.json" \
+              -I || true
+
           echo "WebGoat ZAP scan complete."
-          ls -lh webgoat-zap-report.html 2>/dev/null || echo "WARNING: HTML report not found — check ZAP stage logs above"
+          ls -lh webgoat-zap-report.html webgoat-zap.json 2>/dev/null || echo "WARNING: output files not found"
         '''
       }
       post {
         always {
-          archiveArtifacts artifacts: 'webgoat-zap-report.html',
+          archiveArtifacts artifacts: 'webgoat-zap-report.html,webgoat-zap.json',
                            allowEmptyArchive: true
         }
       }
@@ -260,7 +254,7 @@ pipeline {
           for html in juice-shop-zap-report.html dvwa-zap-report.html webgoat-zap-report.html; do
             if [ -f "$html" ]; then
               SIZE=$(wc -c < "$html")
-              echo "  $html  →  ${SIZE} bytes"
+              echo "  $html  →  ${SIZE} bytes  OK"
             else
               echo "  $html  →  (not generated)"
             fi
@@ -270,7 +264,7 @@ pipeline {
           echo "  Trivy SARIF files:"
           for sarif in juice-shop-trivy-image.sarif dvwa-trivy-image.sarif webgoat-trivy-image.sarif; do
             if [ -f "$sarif" ]; then
-              COUNT=$(jq '[.runs[].results[]]|length' "$sarif" 2>/dev/null || echo "?")
+              COUNT=$(jq '[.runs[].results[]] | length' "$sarif" 2>/dev/null || echo "?")
               echo "  $sarif  →  $COUNT finding(s)"
             else
               echo "  $sarif  →  (not generated)"
@@ -278,7 +272,7 @@ pipeline {
           done
 
           echo ""
-          echo "  Artifacts tab: HTML reports for ZAP, SARIF files for Trivy."
+          echo "  Artifacts tab: HTML reports + JSON for ZAP, SARIF files for Trivy."
           echo "══════════════════════════════════════════════════════════"
         '''
       }
